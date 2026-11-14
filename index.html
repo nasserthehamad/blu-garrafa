@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FDFAF7">
+<meta name="description" content="Controla a garrafa BLU por Bluetooth do navegador.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<title>BLU Garrafa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  html { color-scheme: light dark; }
+  :root { padding: env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px); }
+  body { margin:0; -webkit-text-size-adjust:100%; }
+  img { max-width:100%; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --tinta:#241C18; --fundo:#FDFAF7; --papel:#F5EDE6; --borda:#E4D8C9;
+    --coral:#C0704F; --agua:#5E9DB2; --apagado:#7D6C60; --alerta:#B23A36; --bom:#4F7D52;
+    --disco:#0D0F12;
+    --display:"Baloo 2", system-ui, sans-serif;
+    --corpo:"IBM Plex Sans", system-ui, sans-serif;
+    --dado:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta:#F2EAE3; --fundo:#16120F; --papel:#211B16; --borda:#3A2F26;
+      --coral:#E09068; --agua:#7FBED2; --apagado:#A39284; --alerta:#E07A75; --bom:#8FC095;
+      --disco:#08090B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --tinta:#F2EAE3; --fundo:#16120F; --papel:#211B16; --borda:#3A2F26;
+    --coral:#E09068; --agua:#7FBED2; --apagado:#A39284; --alerta:#E07A75; --bom:#8FC095;
+    --disco:#08090B;
+  }
+
+  * { box-sizing:border-box; }
+  body { background:var(--fundo); color:var(--tinta); font-family:var(--corpo); margin:0; }
+  .env { max-width:560px; margin:0 auto; padding:0 16px 56px; }
+
+  header { display:flex; flex-direction:column; align-items:center; gap:10px; padding-block:20px 12px; }
+  h1 { font-family:var(--display); font-weight:800; font-size:28px; letter-spacing:.01em; margin:0; line-height:1; }
+  .sub { font-size:12px; color:var(--apagado); margin:0; text-align:center; }
+
+  .palco { position:relative; width:190px; height:190px; margin:4px auto 0; }
+  .palco canvas { position:absolute; inset:0; width:100%; height:100%; }
+
+  .pilula { display:inline-flex; align-items:center; gap:8px; background:var(--papel);
+    border:1px solid var(--borda); border-radius:999px; padding:6px 14px; font-size:13px; }
+  .bolinha { width:8px; height:8px; border-radius:50%; background:var(--alerta); flex:none; }
+  .pilula.on .bolinha { background:var(--bom); }
+
+  nav { display:flex; gap:4px; background:var(--papel); border:1px solid var(--borda);
+    border-radius:999px; padding:4px; margin:14px 0 18px; }
+  nav button { flex:1; border:0; background:none; color:var(--apagado); font:inherit; font-size:13px;
+    font-weight:500; padding:8px 4px; border-radius:999px; cursor:pointer; }
+  nav button[aria-selected="true"] { background:var(--fundo); color:var(--tinta); font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,.06); }
+
+  section.aba[hidden] { display:none; }
+  .cartao { background:var(--papel); border:1px solid var(--borda); border-radius:18px;
+    padding:18px; margin-bottom:14px; }
+  .cartao > h2 { font-family:var(--display); font-weight:600; font-size:17px; margin:0 0 4px; }
+  .cartao > p.nota { font-size:12.5px; color:var(--apagado); margin:0 0 14px; line-height:1.5; }
+
+  button.acao { font:inherit; font-weight:600; font-size:14px; border-radius:12px; padding:11px 18px;
+    border:1px solid var(--coral); background:var(--coral); color:#fff; cursor:pointer; }
+  button.acao.vazio { background:transparent; color:var(--tinta); border-color:var(--borda); }
+  button.acao:disabled { opacity:.42; cursor:default; }
+  button.acao.larga { width:100%; }
+
+  .linha { display:flex; flex-wrap:wrap; gap:8px; }
+  .linha.entre { justify-content:space-between; align-items:center; }
+
+  .humores { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:8px; }
+  .humores button { font:inherit; font-size:13px; font-weight:500; padding:10px 6px; border-radius:12px;
+    border:1px solid var(--borda); background:var(--fundo); color:var(--tinta); cursor:pointer; }
+  .humores button[aria-pressed="true"] { border-color:var(--coral); color:var(--coral); font-weight:600; }
+  .humores button:disabled { opacity:.42; cursor:default; }
+
+  .medida { font-family:var(--dado); font-variant-numeric:tabular-nums; }
+  .nivel-num { font-size:34px; font-weight:500; line-height:1; }
+  .origem { font-size:12px; color:var(--apagado); line-height:1.45; }
+  .origem b { color:var(--tinta); font-weight:600; }
+
+  .slots { display:grid; grid-template-columns:repeat(8,1fr); gap:5px; }
+  .slots button { aspect-ratio:1; border-radius:9px; border:1px solid var(--borda); background:var(--fundo);
+    color:var(--apagado); font-family:var(--dado); font-size:11px; cursor:pointer; padding:0; }
+  .slots button.cheio { color:var(--tinta); border-color:var(--agua); background:color-mix(in srgb,var(--agua) 12%,transparent); }
+  .slots button[aria-pressed="true"] { border-color:var(--coral); border-width:2px; color:var(--coral); font-weight:600; }
+
+  .previa { display:flex; justify-content:center; padding:6px 0 14px; }
+  .previa .disco { width:180px; height:180px; border-radius:50%; background:var(--disco);
+    border:6px solid var(--borda); overflow:hidden; }
+  .previa canvas { width:100%; height:100%; display:block; }
+
+  label.campo { display:block; font-size:12.5px; color:var(--apagado); margin:14px 0 6px; }
+  input[type=range] { width:100%; accent-color:var(--coral); }
+  input[type=number], input[type=text] { font:inherit; font-family:var(--dado); width:100%;
+    padding:10px 12px; border-radius:10px; border:1px solid var(--borda);
+    background:var(--fundo); color:var(--tinta); }
+  .troca { display:flex; align-items:center; gap:10px; font-size:13.5px; margin:10px 0; }
+  .troca input { accent-color:var(--coral); width:18px; height:18px; }
+
+  .leituras { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; text-align:center;
+    background:var(--fundo); border:1px solid var(--borda); border-radius:12px; padding:10px 6px; }
+  .leituras .rot { display:block; font-size:10.5px; color:var(--apagado); text-transform:uppercase;
+    letter-spacing:.06em; margin-bottom:2px; }
+  .leituras b { font-size:20px; font-weight:500; }
+  .regua { position:relative; height:8px; border-radius:999px; background:var(--borda);
+    margin-top:10px; overflow:hidden; }
+  .regua i { display:block; height:100%; width:0; background:var(--agua); transition:width .12s; }
+  .regua.passou i { background:var(--coral); }
+  .regua span { position:absolute; top:-3px; width:2px; height:14px; background:var(--tinta); left:0; }
+
+  .barra { height:6px; border-radius:999px; background:var(--borda); overflow:hidden; margin-top:8px; }
+  .barra i { display:block; height:100%; background:var(--coral); width:0; transition:width .18s; }
+
+  .aviso { border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:14px; }
+  .aviso.ruim { background:color-mix(in srgb,var(--alerta) 12%,transparent); color:var(--alerta); }
+  .aviso.bom  { background:color-mix(in srgb,var(--bom) 14%,transparent); color:var(--bom); }
+
+  ol.passos { list-style:none; padding:0; margin:0; }
+  ol.passos li { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;
+    border-bottom:1px solid var(--borda); }
+  ol.passos li:last-child { border-bottom:0; }
+  ol.passos .nome { flex:1; }
+  ol.passos .ms { font-family:var(--dado); font-size:12px; color:var(--apagado); }
+  ol.passos button { border:0; background:none; color:var(--apagado); font:inherit; font-size:16px;
+    cursor:pointer; padding:0 5px; line-height:1; }
+  ol.passos button.tira { color:var(--alerta); }
+
+  #diario { font-family:var(--dado); font-size:11.5px; color:var(--apagado); line-height:1.7;
+    max-height:170px; overflow-y:auto; }
+
+  .tabela-h { width:100%; height:120px; font-family:var(--dado); font-size:10px; }
+  :focus-visible { outline:2px solid var(--coral); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+
+<div class="env">
+  <header>
+    <h1>BLU</h1>
+    <p class="sub">a companheira da sua garrafa</p>
+    <div class="palco">
+      <canvas id="agua" width="380" height="380"></canvas>
+      <canvas id="rosto" width="380" height="380"></canvas>
+    </div>
+    <div class="pilula" id="pilula"><span class="bolinha"></span><span id="pilula-txt">desconectada</span></div>
+  </header>
+
+  <div id="sem-bt" class="aviso ruim" hidden></div>
+  <div id="recado" class="aviso" hidden></div>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-aba="garrafa">Garrafa</button>
+    <button role="tab" aria-selected="false" data-aba="rostos">Rostos</button>
+    <button role="tab" aria-selected="false" data-aba="animacoes">Animações</button>
+  </nav>
+
+  <!-- ───────────────────────── garrafa ───────────────────────── -->
+  <section class="aba" id="aba-garrafa">
+    <div class="cartao">
+      <div class="linha entre">
+        <div>
+          <h2 style="margin-bottom:2px">Conexão</h2>
+          <p class="nota" style="margin:0">Bluetooth LE — não precisa parear nas Configurações.</p>
+        </div>
+      </div>
+      <div class="linha" style="margin-top:14px">
+        <button class="acao" id="b-conectar">Procurar a garrafa</button>
+        <button class="acao vazio" id="b-desconectar" disabled>Desconectar</button>
+      </div>
+    </div>
+
+    <div class="cartao" id="cartao-nivel">
+      <h2>Nível de água</h2>
+      <div class="linha" style="align-items:flex-start;gap:14px;margin-top:8px">
+        <div class="medida nivel-num" id="nivel-num">—</div>
+        <p class="origem" id="nivel-origem" style="flex:1;margin:0">Aguardando a garrafa.</p>
+      </div>
+      <div id="calibra" hidden>
+        <p class="nota" style="margin:14px 0 8px">Esvazie a garrafa e toque em “está vazia”; encha e toque em “está cheia”.</p>
+        <div class="linha">
+          <button class="acao vazio" id="b-vazia" disabled>Está vazia</button>
+          <button class="acao vazio" id="b-cheia" disabled>Está cheia</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Humor agora</h2>
+      <p class="nota">A garrafa volta sozinha pro normal depois de alguns segundos, como faz quando o toque acontece de verdade.</p>
+      <div class="humores" id="humores"></div>
+    </div>
+
+    <div class="cartao">
+      <h2>Sensibilidade do toque</h2>
+      <p class="nota">O toque é capacitivo: a garrafa mede a capacitância do próprio corpo de aço. Encoste nela e veja a leitura mudar — é com esse número que se acerta a sensibilidade.</p>
+
+      <div class="leituras">
+        <div><span class="rot">leitura</span><b class="medida" id="t-leitura">—</b></div>
+        <div><span class="rot">referência</span><b class="medida" id="t-base">—</b></div>
+        <div><span class="rot">desvio</span><b class="medida" id="t-desvio">—</b></div>
+      </div>
+      <div class="regua"><i id="t-barra"></i><span id="t-corte"></span></div>
+      <p class="nota" id="t-estado" style="margin:8px 0 0">Conecte pra ver ao vivo.</p>
+
+      <label class="campo" for="marg">Sensibilidade: <b class="medida" id="marg-n">automática</b></label>
+      <input type="range" id="marg" min="0" max="60" step="1" value="0">
+      <p class="nota" style="margin:2px 0 0">
+        Pra esquerda = mais sensível. <b>0 = automática</b> (um quinto da referência), que é o padrão.
+        O desvio precisa passar da linha pra contar como toque.
+      </p>
+      <div class="linha" style="margin-top:10px">
+        <button class="acao" id="b-marg" disabled>Salvar sensibilidade</button>
+        <button class="acao vazio" id="b-recal" disabled>Recalibrar</button>
+      </div>
+      <p class="nota" style="margin:8px 0 0">Pra recalibrar, tire a mão da garrafa primeiro: ela mede o "solto".</p>
+
+      <label class="campo" for="thr">Tempo mínimo de contato: <b class="medida" id="thr-atual">—</b> ms</label>
+      <div class="linha" style="align-items:center;flex-wrap:nowrap">
+        <input type="number" id="thr" min="20" max="3000" step="10" placeholder="200" style="flex:1">
+        <button class="acao" id="b-thr" disabled>Salvar</button>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>O que aconteceu</h2>
+      <div id="diario">Nada ainda.</div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── rostos ───────────────────────── -->
+  <section class="aba" id="aba-rostos" hidden>
+    <div class="cartao">
+      <h2>Carinhas na garrafa</h2>
+      <p class="nota">Cabem 24 carinhas suas, além das 14 de fábrica. Livres na garrafa: <b class="medida" id="kb-livres">—</b> KB.</p>
+      <div class="slots" id="slots"></div>
+      <p class="nota" style="margin:12px 0 0" id="slot-txt">Slot escolhido: 0 (vazio)</p>
+      <div class="linha" style="margin-top:10px">
+        <button class="acao vazio" id="b-ver" disabled>Ver na garrafa</button>
+        <button class="acao vazio" id="b-apagar" disabled>Apagar</button>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Nova carinha</h2>
+      <p class="nota">A prévia abaixo é exata: a tela da garrafa é redonda, tem 240×240 e só 65 mil cores.</p>
+      <input type="file" id="arquivo" accept="image/*" hidden>
+      <button class="acao larga" id="b-escolher">Escolher uma imagem</button>
+
+      <div id="editor" hidden>
+        <div class="previa"><div class="disco"><canvas id="previa" width="240" height="240"></canvas></div></div>
+
+        <p class="nota" style="margin:0 0 4px">
+          <b class="medida" id="tam">—</b> · <b class="medida" id="cores">—</b> cores ·
+          cabe até <span class="medida">48</span> KB
+        </p>
+        <div id="grande" class="aviso ruim" hidden>
+          Arraste “cores” pra esquerda: menos cor, muito menos tamanho.
+        </div>
+
+        <label class="campo" for="niveis">Cores por canal: <b class="medida" id="niveis-n">6</b></label>
+        <input type="range" id="niveis" min="2" max="24" value="6">
+
+        <div class="troca"><input type="checkbox" id="limpar" checked><label for="limpar">Limpar pontinhos soltos</label></div>
+        <div class="troca"><input type="checkbox" id="redondo" checked><label for="redondo">Recortar em círculo</label></div>
+
+        <div class="barra" id="barra" hidden><i></i></div>
+        <div class="linha" style="margin-top:14px">
+          <button class="acao larga" id="b-enviar" disabled>Mandar pra garrafa</button>
+        </div>
+        <p class="nota" id="porque" style="margin:8px 0 0;text-align:center"></p>
+        <div class="linha" hidden>
+        </div>
+        <button class="acao vazio larga" id="b-h" style="margin-top:8px">Baixar arquivo .h</button>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Começar de novo</h2>
+      <p class="nota">Apaga suas carinhas e devolve as animações de fábrica. As 14 originais nunca são apagadas — elas moram no firmware.</p>
+      <button class="acao vazio" id="b-zerar" disabled>Apagar tudo</button>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── animações ───────────────────────── -->
+  <section class="aba" id="aba-animacoes" hidden>
+    <div class="cartao">
+      <h2>Como funciona</h2>
+      <p class="nota" style="margin:0">Monte a sequência de cada humor: quais quadros, em que ordem, por quanto tempo. Fica salvo na garrafa mesmo desligada. A lista abaixo começa nas animações de fábrica — o firmware não devolve as que já estão gravadas.</p>
+    </div>
+    <div id="editores"></div>
+    <button class="acao vazio larga" id="b-fabrica" disabled>Voltar tudo pro de fábrica</button>
+  </section>
+</div>
+
+<script>
+/* ═══════════════ dados das carinhas (vetorizadas dos Imagem*.h) ═══════════════ */
+const CARINHAS = {"quadros":{"normal_1":[["RO","M71,93 C66,88 68,85 75,84 C80,84 81,84 81,86 C83,93 76,97 71,93 Z"],["BR","M96,71 C94,64 96,63 112,62 C127,62 127,62 127,67 C126,72 126,72 112,72 C100,72 97,72 96,71 Z M23,67 C24,60 53,60 54,67 C54,71 54,71 38,71 C23,71 23,71 23,67 Z"]],"normal_2":[["RO","M71,93 C66,88 68,85 75,84 C80,84 81,84 81,86 C83,93 76,97 71,93 Z"],["BR","M35,86 C17,80 14,55 32,47 C36,44 46,44 49,46 C50,46 52,47 53,47 C59,47 65,66 61,74 C59,80 56,83 55,82 C54,82 54,82 54,83 C57,85 42,88 35,86 Z M104,86 C90,84 83,64 92,53 C109,32 139,51 128,75 C123,84 115,88 104,86 Z M51,73 C60,63 47,47 35,55 C28,60 27,69 33,75 C38,80 45,79 51,73 Z M117,75 C117,75 118,73 120,70 C121,67 122,65 121,65 C120,65 120,64 120,63 C120,59 116,55 112,54 C104,52 98,58 98,66 C98,73 107,79 113,76 C115,76 116,75 117,75 Z"]],"feliz_1":[["RO","M74,111 C71,110 69,105 69,99 C69,95 70,93 73,95 C74,96 75,96 77,95 C82,93 83,95 80,107 C79,111 78,112 74,111 Z"],["BR","M34,85 C18,80 14,60 26,50 C43,35 66,49 60,71 C57,83 45,89 34,85 Z M100,85 C78,73 89,39 113,44 C131,48 136,69 124,81 C117,87 108,89 100,85 Z M117,73 C126,63 115,49 104,55 C95,59 97,76 106,76 C106,76 107,76 107,77 C107,79 115,76 117,73 Z M49,73 C50,72 51,70 51,69 C51,69 51,68 52,68 C53,68 53,67 53,66 C53,65 53,64 52,64 C51,64 51,64 52,63 C52,62 51,61 50,59 C41,47 24,57 31,71 C34,77 44,79 49,73 Z"]],"feliz_2":[["RO","M74,111 C71,110 69,105 69,99 C69,95 70,93 73,95 C74,96 75,96 77,95 C82,93 83,95 80,107 C79,111 78,112 74,111 Z"],["BR","M103,101 C102,101 102,97 102,93 C102,87 102,86 99,84 C80,72 87,44 109,44 C131,44 138,73 120,84 C115,86 115,86 115,94 C114,102 114,102 109,102 C106,102 103,102 103,101 Z M19,77 C19,72 24,69 32,69 C33,69 34,69 35,68 C35,68 36,67 38,67 C39,66 39,66 37,66 C36,66 35,66 34,65 C34,64 32,64 31,64 C24,64 19,60 19,56 C19,51 20,50 25,52 C26,53 29,54 32,54 C34,54 37,55 38,56 C40,56 45,58 50,59 C60,61 61,62 61,67 C61,71 58,74 51,74 C50,74 48,75 47,75 C45,76 43,77 40,77 C35,78 28,80 26,81 C21,83 19,82 19,77 Z M117,75 C117,75 118,73 120,70 C121,67 122,65 121,65 C120,65 120,64 120,63 C120,59 116,55 112,54 C104,52 98,58 98,66 C98,73 107,79 113,76 C115,76 116,75 117,75 Z"]],"feliz_3":[["RO","M74,111 C71,110 69,105 69,99 C69,95 70,93 73,95 C74,96 75,96 77,95 C82,93 83,95 80,107 C79,111 78,112 74,111 Z"],["BR","M102,118 C102,117 102,110 102,101 C102,86 101,86 99,84 C82,76 86,48 105,44 C130,39 141,74 119,84 C115,86 115,86 115,102 C114,118 114,118 109,119 C105,119 103,119 102,118 Z M19,77 C19,72 24,69 32,69 C33,69 34,69 35,68 C35,68 36,67 38,67 C39,66 39,66 37,66 C36,66 35,66 34,65 C34,64 32,64 31,64 C24,64 19,60 19,56 C19,51 20,50 25,52 C26,53 29,54 32,54 C34,54 37,55 38,56 C40,56 45,58 50,59 C60,61 61,62 61,67 C61,71 58,74 51,74 C50,74 48,75 47,75 C45,76 43,77 40,77 C35,78 28,80 26,81 C21,83 19,82 19,77 Z M117,75 C117,75 118,73 120,70 C121,67 122,65 121,65 C120,65 120,64 120,63 C120,59 116,55 112,54 C104,52 98,58 98,66 C98,73 107,79 113,76 C115,76 116,75 117,75 Z"]],"toque_1":[["RO","M69,92 C65,87 67,84 75,84 C83,84 85,85 84,89 C82,95 73,97 69,92 Z M42,37 C41,36 40,35 40,34 C40,32 40,32 41,34 C42,35 43,36 44,36 C44,36 45,35 46,34 C47,32 47,32 47,34 C47,37 45,39 42,37 Z"],["RX","M42,35 C40,34 41,31 43,32 C46,32 46,33 46,34 C45,36 43,37 42,35 Z"],["BR","M91,68 C89,61 92,53 100,48 C105,44 118,43 120,46 C120,47 121,47 121,47 C126,46 134,64 131,69 C129,72 122,70 121,66 C121,60 121,60 118,58 C111,53 102,56 101,65 C100,71 93,73 91,68 Z M20,68 C18,67 19,59 21,56 C23,52 29,46 30,47 C31,47 31,47 31,46 C31,46 34,45 37,45 C49,43 59,52 60,64 C60,71 51,72 50,65 C47,52 30,52 29,66 C28,69 22,70 20,68 Z"]],"toque_2":[["RO","M67,99 C63,97 61,92 62,87 C64,81 86,83 86,90 C86,98 75,103 67,99 Z"],["RX","M62,54 C62,53 62,53 62,52 C63,52 62,51 62,50 C60,48 67,45 70,47 C70,48 70,53 70,53 C70,53 68,53 66,54 C64,55 63,54 62,54 Z"],["BR","M19,69 C15,64 22,51 30,47 C44,39 62,53 59,68 C57,72 50,71 49,65 C47,55 35,52 30,61 C28,64 27,66 28,68 C28,70 20,71 19,69 Z M91,67 C89,60 97,44 101,47 C102,47 102,47 102,46 C102,45 111,44 116,45 C129,49 137,70 125,70 C121,70 121,70 121,67 C121,53 101,52 100,65 C100,71 92,73 91,67 Z"]],"toque_3":[["RO","M74,94 C69,93 65,90 68,89 C69,88 70,87 70,86 C70,83 80,83 83,85 C85,87 83,91 81,93 C78,95 78,95 74,94 Z"],["RX","M117,93 C116,91 116,90 117,89 C118,87 124,87 124,88 C124,88 124,89 125,90 C125,95 119,97 117,93 Z M62,88 C61,88 61,85 61,82 C61,80 69,81 70,83 C71,88 67,91 62,88 Z M106,53 C103,52 102,48 104,45 C106,44 106,44 107,45 C107,45 108,46 108,46 C109,45 111,48 111,51 C110,54 110,54 106,53 Z M32,37 C30,35 29,34 30,34 C31,33 31,32 31,32 C29,27 37,25 41,30 C43,33 41,40 38,38 C37,38 36,38 36,39 C35,40 34,39 32,37 Z"],["BR","M91,69 C88,64 92,54 98,49 C102,45 103,45 102,49 C102,51 102,52 105,54 C107,55 108,56 107,56 C104,56 100,62 100,66 C101,70 93,72 91,69 Z M121,67 C121,60 117,55 112,55 C110,55 110,55 111,52 C112,50 112,49 111,46 C109,44 109,44 114,44 C126,46 136,61 131,69 C129,72 121,70 121,67 Z M19,68 C14,64 23,49 31,46 C36,44 47,44 48,46 C48,47 49,47 49,47 C54,47 61,60 59,67 C58,71 49,70 49,65 C49,61 44,55 40,55 C34,55 29,60 29,66 C29,68 21,71 19,68 Z"]],"sede_1":[["RO","M65,97 C65,89 79,87 83,94 C86,97 85,98 75,98 C68,98 65,97 65,97 Z"],["BR","M33,86 C31,85 30,84 29,84 C28,84 22,77 22,75 C22,74 21,73 21,72 C18,70 21,66 24,67 C30,68 42,59 45,51 C48,39 63,54 61,68 C60,82 42,93 33,86 Z M106,87 C105,87 104,86 102,86 C99,85 93,79 91,74 C90,70 90,57 92,56 C92,56 93,55 93,54 C93,53 100,46 101,47 C102,47 102,47 102,46 C102,45 103,45 104,45 C104,45 105,46 105,46 C105,54 121,68 128,66 C131,66 132,68 130,73 C128,78 123,85 119,86 C117,86 116,87 115,87 C115,88 113,88 110,88 C108,88 106,88 106,87 Z M44,77 C50,75 52,67 49,63 C47,61 47,61 43,65 C41,67 38,69 37,69 C31,69 31,73 38,77 C41,79 40,79 44,77 Z M116,76 C120,72 120,71 115,69 C113,68 110,66 108,64 C104,60 103,60 102,63 C97,73 109,83 116,76 Z"]],"sede_2":[["RO","M65,97 C65,89 79,87 83,94 C86,97 85,98 75,98 C68,98 65,97 65,97 Z"],["BR","M103,88 C103,87 102,86 101,85 C98,84 93,78 91,74 C90,70 90,57 92,56 C92,56 93,55 93,54 C93,53 100,46 101,47 C102,47 102,47 102,46 C102,45 103,45 104,45 C104,45 105,46 105,46 C105,54 121,68 128,66 C136,64 127,83 118,86 C117,86 115,88 115,89 C113,92 103,92 103,88 Z M33,86 C31,85 30,84 29,84 C28,84 22,77 22,75 C22,74 21,73 21,72 C18,70 21,66 24,67 C30,68 42,59 45,51 C48,39 63,54 61,68 C60,82 42,93 33,86 Z M44,77 C50,75 52,67 49,63 C47,61 47,61 43,65 C41,67 38,69 37,69 C31,69 31,73 38,77 C41,79 40,79 44,77 Z M116,76 C120,72 120,71 115,69 C113,68 110,66 108,64 C104,60 103,60 102,63 C97,73 109,83 116,76 Z"]],"sede_3":[["RO","M70,112 C66,110 66,106 69,103 C73,99 78,99 81,104 C84,109 76,115 70,112 Z"],["BR","M60,107 C54,104 54,96 61,92 C66,89 80,87 84,90 C84,90 86,91 87,91 C95,94 97,103 90,106 C85,108 83,108 81,105 C78,98 65,100 67,107 C67,108 63,108 60,107 Z M104,96 C103,96 103,93 103,91 C103,87 103,86 101,85 C98,84 93,78 91,74 C90,70 90,57 92,56 C92,56 93,55 93,54 C93,53 100,46 101,47 C102,47 102,47 102,46 C102,45 103,45 104,45 C104,45 105,46 105,46 C105,54 121,68 128,66 C131,66 132,68 130,73 C128,78 123,85 119,86 C115,86 114,88 114,93 C114,96 106,99 104,96 Z M33,86 C31,85 30,84 29,84 C28,84 22,77 22,75 C22,74 21,73 21,72 C18,70 21,66 24,67 C30,68 42,59 45,51 C48,39 63,54 61,68 C60,82 42,93 33,86 Z M44,77 C50,75 52,67 49,63 C47,61 47,61 43,65 C41,67 38,69 37,69 C31,69 31,73 38,77 C41,79 40,79 44,77 Z M116,76 C120,72 120,71 115,69 C113,68 110,66 108,64 C104,60 103,60 102,63 C97,73 109,83 116,76 Z"]],"joinha_1":[["RO","M74,94 C70,94 67,90 67,87 C68,84 80,83 83,85 C85,87 81,95 78,95 C77,95 75,95 74,94 Z"],["BR","M35,86 C17,80 14,55 32,47 C36,44 46,44 49,46 C50,46 52,47 53,47 C59,47 65,66 61,74 C59,80 56,83 55,82 C54,82 54,82 54,83 C57,85 42,88 35,86 Z M104,86 C90,84 83,64 92,53 C109,32 139,51 128,75 C123,84 115,88 104,86 Z M51,73 C60,63 47,47 35,55 C28,60 27,69 33,75 C38,80 45,79 51,73 Z M117,75 C117,75 118,73 120,70 C121,67 122,65 121,65 C120,65 120,64 120,63 C120,59 116,55 112,54 C104,52 98,58 98,66 C98,73 107,79 113,76 C115,76 116,75 117,75 Z"]],"joinha_2":[["RO","M74,94 C70,94 67,90 67,87 C68,84 80,83 83,85 C85,87 81,95 78,95 C77,95 75,95 74,94 Z"],["BR","M35,86 C17,80 14,55 32,47 C36,44 46,44 49,46 C50,46 52,47 53,47 C59,47 65,66 61,74 C59,80 56,83 55,82 C54,82 54,82 54,83 C57,85 42,88 35,86 Z M51,73 C60,63 47,47 35,55 C28,60 27,69 33,75 C38,80 45,79 51,73 Z M87,78 C85,75 87,74 98,64 C111,53 116,52 116,60 C116,61 114,62 112,63 C105,68 106,69 119,69 C130,69 130,69 131,72 C133,78 131,79 108,79 C92,79 88,79 87,78 Z"]],"joinha_3":[["RO","M74,94 C70,94 67,90 67,87 C68,84 80,83 83,85 C85,87 81,95 78,95 C77,95 75,95 74,94 Z"],["BR","M97,121 C93,117 93,109 98,105 C99,104 99,103 98,97 C96,89 96,88 100,88 C103,88 104,90 105,98 C105,104 105,103 106,102 C107,102 108,99 109,95 C110,89 112,88 115,88 C119,90 118,93 113,102 C112,105 112,106 114,109 C119,121 106,130 97,121 Z M35,86 C17,80 14,55 32,47 C36,44 46,44 49,46 C50,46 52,47 53,47 C59,47 65,66 61,74 C59,80 56,83 55,82 C54,82 54,82 54,83 C57,85 42,88 35,86 Z M51,73 C60,63 47,47 35,55 C28,60 27,69 33,75 C38,80 45,79 51,73 Z M87,78 C85,75 87,74 98,64 C111,53 116,52 116,60 C116,61 114,62 112,63 C105,68 106,69 119,69 C130,69 130,69 131,72 C133,78 131,79 108,79 C92,79 88,79 87,78 Z"]]},"sequencias":{"normal":["normal_2","normal_1"],"feliz":["feliz_1","feliz_2","feliz_3"],"toque":["toque_1","toque_2","toque_3"],"sede":["sede_1","sede_2","sede_3"],"joinha":["joinha_1","joinha_2","joinha_3"]}};
+const COR = { BR:"#FFFFFF", RO:"#FF8FA8", RX:"#A855F7" };
+const HUMORES = ["normal","sede","toque","feliz","joinha"];
+const ROTULO  = ["Normal","Sede","Toque","Feliz","Joinha"];
+
+/* ═══════════════ BLE ═══════════════ */
+const SERVICO = "12345678-1234-5678-1234-56789abcdef0";
+const CH = {
+  rosto:"12345678-1234-5678-1234-56789abcdef1", nivel:"12345678-1234-5678-1234-56789abcdef2",
+  buzz :"12345678-1234-5678-1234-56789abcdef3", ctrl :"12345678-1234-5678-1234-56789abcdef4",
+  dados:"12345678-1234-5678-1234-56789abcdef5", status:"12345678-1234-5678-1234-56789abcdef6",
+  info :"12345678-1234-5678-1234-56789abcdef7"
+};
+const LADO = 240, TOTAL = LADO * LADO, TETO = 49152, SLOTS = 24;
+
+let gatt = null, car = {}, conectado = false;
+const estado = { nivel:null, origem:0, slots:0, kbLivres:0, threshold:null, humor:0,
+                 leitura:null, base:0, margem:0 };
+
+const $ = s => document.querySelector(s);
+const diario = [];
+function anotar(t) {
+  diario.unshift(new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}) + "  " + t);
+  if (diario.length > 60) diario.pop();
+  $("#diario").textContent = diario.join("\n");
+}
+function recado(txt, bom) {
+  const el = $("#recado");
+  el.textContent = txt; el.className = "aviso " + (bom ? "bom" : "ruim"); el.hidden = false;
+  clearTimeout(recado.t); recado.t = setTimeout(() => { el.hidden = true; }, 6000);
+}
+
+function pintarConexao() {
+  $("#pilula").classList.toggle("on", conectado);
+  $("#pilula-txt").textContent = conectado ? "conectada" : "desconectada";
+  $("#b-desconectar").disabled = !conectado;
+  $("#b-conectar").disabled = conectado;
+  document.querySelectorAll("#humores button, #b-thr, #b-marg, #b-recal, #b-vazia, #b-cheia, #b-ver, #b-apagar, #b-zerar, #b-fabrica, .b-salvar-seq")
+    .forEach(b => { b.disabled = !conectado; });
+  atualizarBotoesSlot();
+  $("#b-enviar").disabled = !conectado || !rleAtual || rleAtual.length > TETO;
+}
+
+async function conectar() {
+  if (!navigator.bluetooth) { recado("Este navegador não tem Web Bluetooth."); return; }
+  try {
+    const dev = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [SERVICO] }], optionalServices: [SERVICO]
+    });
+    anotar("Conectando em " + (dev.name || "garrafa") + "…");
+    dev.addEventListener("gattserverdisconnected", () => {
+      conectado = false; gatt = null; car = {}; pintarConexao(); anotar("A garrafa desconectou.");
+    });
+    gatt = await dev.gatt.connect();
+    const s = await gatt.getPrimaryService(SERVICO);
+    for (const [k, u] of Object.entries(CH)) {
+      try { car[k] = await s.getCharacteristic(u); } catch (e) { /* firmware antigo */ }
+    }
+    for (const k of ["nivel","status","info"]) {
+      if (!car[k]) continue;
+      await car[k].startNotifications();
+      car[k].addEventListener("characteristicvaluechanged", e => receber(k, e.target.value));
+    }
+    conectado = true; pintarConexao();
+    anotar("Conectada.");
+    // Firmware anterior ao v5 nao tem as caracteristicas de upload. Melhor dizer agora
+    // do que deixar o botao de enviar parecer quebrado depois.
+    if (!car.ctrl || !car.dados) {
+      recado("Conectou, mas esta garrafa tem firmware antigo: da pra trocar o humor, nao da pra mandar carinha nova.");
+      anotar("Firmware antigo: sem CTRL/DADOS.");
+    }
+    if (car.info) { try { receber("info", await car.info.readValue()); } catch (e) {} }
+  } catch (e) {
+    const m = (e && e.message) || "";
+    if (m.includes("permissions policy") || m.includes("disallowed")) {
+      recado("Esta pagina esta hospedada num lugar que bloqueia Bluetooth. Abra o endereco do GitHub Pages (github.io), nao o do claude.ai.");
+      anotar("Bloqueado pela permissions policy do iframe.");
+      return;
+    }
+    if (e && e.name === "NotFoundError") anotar("Nenhuma garrafa escolhida.");
+    else { anotar("Falhou: " + (e && e.message)); recado("Não consegui conectar: " + (e && e.message)); }
+  }
+}
+
+function receber(qual, dv) {
+  if (qual === "nivel" && dv.byteLength >= 1) { estado.nivel = dv.getUint8(0); pintarNivel(); }
+  if (qual === "info" && dv.byteLength >= 12) {
+    estado.origem = dv.getUint8(0);
+    estado.nivel = dv.getUint8(1);
+    estado.slots = dv.getUint32(2, true);
+    estado.kbLivres = dv.getUint16(6, true);
+    estado.threshold = dv.getUint16(8, true);
+    estado.humor = dv.getUint8(10);
+    // v5.3 acrescentou leitura/referencia/sensibilidade do toque no fim do pacote.
+    // Firmware mais antigo manda 12 bytes e simplesmente nao entra aqui.
+    if (dv.byteLength >= 18) {
+      estado.leitura = dv.getUint16(12, true);
+      estado.base    = dv.getUint16(14, true);
+      estado.margem  = dv.getUint16(16, true);
+      pintarToque();
+    }
+    pintarNivel(); pintarSlots();
+    $("#thr-atual").textContent = estado.threshold;
+    $("#kb-livres").textContent = estado.kbLivres;
+    document.querySelectorAll("#humores button").forEach((b, i) =>
+      b.setAttribute("aria-pressed", String(i === estado.humor)));
+  }
+  if (qual === "status" && dv.byteLength >= 2) status(dv.getUint8(0), dv.getUint8(1));
+}
+
+const ERROS = { 1:"a garrafa ficou sem memória", 2:"o quadro passou do tamanho máximo",
+  3:"os dados chegaram corrompidos", 4:"o quadro não cobre a tela inteira",
+  5:"não deu pra gravar na memória da garrafa", 6:"slot inválido", 7:"não há célula de carga ligada" };
+
+let terminarEnvio = null;
+function status(codigo, dado) {
+  if (codigo === 1) { $("#barra").querySelector("i").style.width = dado + "%"; }
+  if (codigo === 2) {
+    anotar("Garrafa confirmou (slot " + dado + ").");
+    if (terminarEnvio) { terminarEnvio(true, "Carinha gravada no slot " + dado + "."); terminarEnvio = null; }
+  }
+  if (codigo === 3) {
+    const m = ERROS[dado] || ("erro " + dado);
+    anotar("Erro na garrafa: " + m);
+    if (terminarEnvio) { terminarEnvio(false, m); terminarEnvio = null; }
+    else recado("Não deu certo: " + m);
+  }
+  if (codigo === 4) recado(dado === 0 ? "Marquei este peso como garrafa vazia." : "Marquei este peso como garrafa cheia.", true);
+}
+
+const ctrl = bytes => car.ctrl && car.ctrl.writeValueWithResponse(new Uint8Array(bytes));
+
+function pintarToque() {
+  const { leitura, base, margem } = estado;
+  if (leitura == null) return;
+  const desvio = Math.abs(leitura - base);
+  const corte = margem || Math.max(2, Math.round(base / 5));
+  $("#t-leitura").textContent = leitura;
+  $("#t-base").textContent = base;
+  $("#t-desvio").textContent = desvio;
+  // A regua mostra o desvio contra o corte, com o dobro do corte como fim de escala:
+  // assim a linha do corte cai sempre no meio e da pra ver "o quanto passou".
+  const escala = corte * 2 || 1;
+  $("#t-barra").style.width = Math.min(100, (desvio / escala) * 100) + "%";
+  $("#t-corte").style.left = "50%";
+  $(".regua").classList.toggle("passou", desvio > corte);
+  $("#t-estado").textContent = desvio > corte
+    ? "Encostado — passou do corte (" + desvio + " > " + corte + ")."
+    : "Solto — faltam " + (corte - desvio + 1) + " pro corte de " + corte + ".";
+  if (document.activeElement !== $("#marg")) {
+    $("#marg").value = margem;
+    $("#marg-n").textContent = margem ? margem : "automática";
+  }
+}
+
+function pintarNivel() {
+  $("#nivel-num").textContent = estado.nivel == null ? "—" : estado.nivel + "%";
+  const txt = {
+    0:"<b>Estimativa</b> pelo tempo desde o último toque. Não há sensor de nível ligado.",
+    1:"Medido pela <b>célula de carga</b>.",
+    2:"Tem célula de carga, mas <b>falta calibrar</b> — mostrando estimativa."
+  };
+  // origem 255 = a garrafa diz que nao tem medicao de agua. Nesse caso o cartao inteiro
+  // sai da tela: melhor nao ter o campo do que ter um numero que nao significa nada.
+  const semSensor = estado.origem === 255;
+  const cartao = $("#cartao-nivel");
+  if (cartao) cartao.hidden = semSensor;
+  $("#nivel-origem").innerHTML = estado.nivel == null ? "Aguardando a garrafa." : (txt[estado.origem] || "");
+  $("#calibra").hidden = true;
+}
+
+/* ═══════════════ imagem → RGB565 → RLE ═══════════════ */
+let pixelsAtual = null, rleAtual = null, imagemOriginal = null;
+
+function posterizar(v, n) {
+  if (n <= 1) return v;
+  const passo = 255 / (n - 1);
+  return Math.min(255, Math.max(0, Math.round(Math.round(v / passo) * passo)));
+}
+
+function converter(imgData, niveis, limpar, redondo) {
+  const d = imgData.data;
+  let px = new Uint16Array(TOTAL);
+  for (let i = 0; i < TOTAL; i++) {
+    let r = d[i*4], g = d[i*4+1], b = d[i*4+2];
+    if (niveis >= 2 && niveis <= 64) { r = posterizar(r, niveis); g = posterizar(g, niveis); b = posterizar(b, niveis); }
+    px[i] = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+  }
+  if (limpar) px = tirarPontinhos(px);
+  if (redondo) {
+    const raio = LADO / 2, cx = raio - .5, cy = raio - .5;
+    for (let y = 0; y < LADO; y++) for (let x = 0; x < LADO; x++) {
+      const dx = x - cx, dy = y - cy;
+      if (dx*dx + dy*dy > raio*raio) px[y*LADO + x] = 0;
+    }
+  }
+  return px;
+}
+
+// maioria 3x3: pixel solto no meio de uma area de uma cor so vira aquela cor.
+// e o que mata o chuvisco de JPEG, que e justamente o que incha o RLE.
+function tirarPontinhos(px) {
+  const out = px.slice();
+  const viz = new Uint16Array(8);
+  for (let y = 1; y < LADO - 1; y++) {
+    for (let x = 1; x < LADO - 1; x++) {
+      let k = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (dx || dy) viz[k++] = px[(y+dy)*LADO + (x+dx)];
+      }
+      let melhor = 0, quantas = 0;
+      for (let i = 0; i < 8; i++) {
+        let c = 0;
+        for (let j = 0; j < 8; j++) if (viz[j] === viz[i]) c++;
+        if (c > quantas) { quantas = c; melhor = viz[i]; }
+      }
+      if (quantas >= 5) out[y*LADO + x] = melhor;
+    }
+  }
+  return out;
+}
+
+function comprimirRLE(px) {
+  const buf = new Uint8Array(px.length * 4);
+  let p = 0, cor = px[0], n = 0;
+  const despejar = () => { buf[p++] = n & 255; buf[p++] = n >> 8; buf[p++] = cor & 255; buf[p++] = cor >> 8; };
+  for (let i = 0; i < px.length; i++) {
+    if (px[i] === cor && n < 65535) n++;
+    else { despejar(); cor = px[i]; n = 1; }
+  }
+  despejar();
+  return buf.slice(0, p);
+}
+
+const TABELA_CRC = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c >>> 0; }
+  return t;
+})();
+function crc32(b) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < b.length; i++) c = TABELA_CRC[(c ^ b[i]) & 255] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function desenharPrevia(px) {
+  const cv = $("#previa"), cx = cv.getContext("2d");
+  const img = cx.createImageData(LADO, LADO);
+  for (let i = 0; i < TOTAL; i++) {
+    const v = px[i];
+    img.data[i*4]   = ((v >> 11) & 0x1F) * 255 / 31;
+    img.data[i*4+1] = ((v >> 5)  & 0x3F) * 255 / 63;
+    img.data[i*4+2] = (v & 0x1F) * 255 / 31;
+    img.data[i*4+3] = 255;
+  }
+  cx.putImageData(img, 0, 0);
+}
+
+function reprocessar() {
+  if (!imagemOriginal) return;
+  const niveis = +$("#niveis").value;
+  $("#niveis-n").textContent = niveis;
+  pixelsAtual = converter(imagemOriginal, niveis, $("#limpar").checked, $("#redondo").checked);
+  rleAtual = comprimirRLE(pixelsAtual);
+  desenharPrevia(pixelsAtual);
+  const cores = new Set();
+  for (let i = 0; i < TOTAL && cores.size <= 4096; i++) cores.add(pixelsAtual[i]);
+  const kb = (rleAtual.length / 1024).toFixed(1);
+  const cabe = rleAtual.length <= TETO;
+  $("#tam").textContent = kb + " KB";
+  $("#tam").style.color = cabe ? "" : "var(--alerta)";
+  $("#cores").textContent = cores.size > 4096 ? "4096+" : cores.size;
+  $("#grande").hidden = cabe;
+  $("#b-enviar").disabled = !conectado || !cabe;
+  $("#porque").textContent = !conectado ? "Conecte na garrafa pra liberar o envio."
+                           : !cabe      ? "Reduza as cores: o quadro nao cabe."
+                           : "";
+}
+
+function carregarImagem(file) {
+  const url = URL.createObjectURL(file);
+  const im = new Image();
+  im.onload = () => {
+    const lado = Math.min(im.width, im.height);
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = LADO;
+    const cx = cv.getContext("2d", { willReadFrequently:true });
+    cx.fillStyle = "#000"; cx.fillRect(0, 0, LADO, LADO);
+    cx.drawImage(im, (im.width-lado)/2, (im.height-lado)/2, lado, lado, 0, 0, LADO, LADO);
+    imagemOriginal = cx.getImageData(0, 0, LADO, LADO);
+    URL.revokeObjectURL(url);
+    $("#editor").hidden = false;
+    reprocessar();
+  };
+  im.onerror = () => recado("Não consegui abrir essa imagem.");
+  im.src = url;
+}
+
+async function enviarQuadro() {
+  // Antes isto era um "return" calado em tres situacoes diferentes, e o botao parecia
+  // simplesmente nao funcionar. Agora cada caso diz o que esta faltando.
+  if (!conectado)   { recado("Conecte na garrafa primeiro (aba Garrafa)."); return; }
+  if (!rleAtual)    { recado("Escolha uma imagem antes."); return; }
+  if (!car.ctrl || !car.dados) {
+    recado("Esta garrafa nao aceita carinha nova: o firmware dela e anterior ao v5. Grave o BLU_V5.ino e tente de novo.");
+    return;
+  }
+  const slot = slotEscolhido, n = rleAtual.length;
+  $("#b-enviar").disabled = true;
+  $("#barra").hidden = false; $("#barra").querySelector("i").style.width = "0%";
+  anotar("Enviando " + (n/1024).toFixed(1) + " KB pro slot " + slot + "…");
+
+  const pronto = new Promise(res => { terminarEnvio = (ok, msg) => res({ ok, msg }); });
+  try {
+    await ctrl([0x01, slot, n & 255, (n>>8) & 255, (n>>16) & 255, (n>>24) & 255]);
+    const pedaco = 180;                     // multiplo de 4: nenhum par de RLE nasce partido
+    for (let i = 0; i < n; i += pedaco) {
+      await car.dados.writeValueWithResponse(rleAtual.slice(i, Math.min(i + pedaco, n)));
+      $("#barra").querySelector("i").style.width = Math.round(100 * Math.min(i + pedaco, n) / n) + "%";
+    }
+    const c = crc32(rleAtual);
+    await ctrl([0x02, c & 255, (c>>8) & 255, (c>>16) & 255, (c>>>24) & 255]);
+  } catch (e) {
+    terminarEnvio = null; $("#barra").hidden = true; $("#b-enviar").disabled = false;
+    recado("O envio falhou: " + (e && e.message)); anotar("Envio falhou: " + (e && e.message));
+    return;
+  }
+  const limite = setTimeout(() => { if (terminarEnvio) { terminarEnvio(false, "a garrafa não confirmou"); terminarEnvio = null; } }, 45000);
+  const r = await pronto;
+  clearTimeout(limite);
+  $("#barra").hidden = true; $("#b-enviar").disabled = false;
+  recado(r.ok ? r.msg : ("Não deu certo: " + r.msg), r.ok);
+}
+
+function gerarH(px) {
+  const linhas = ["// ImagemBLU.h — gerado pelo app da BLU",
+    "// 240x240 em RGB565, mesma organizacao dos Imagem*.h originais.",
+    "#ifndef IMAGEMBLU_H", "#define IMAGEMBLU_H", "", "#include <stdint.h>", "",
+    "const uint16_t ImagemBLU[] PROGMEM = {"];
+  for (let i = 0; i < px.length; i += 16) {
+    const p = [];
+    for (let j = i; j < Math.min(i + 16, px.length); j++)
+      p.push("0x" + px[j].toString(16).toUpperCase().padStart(4, "0"));
+    linhas.push("    " + p.join(", ") + (i + 16 < px.length ? "," : ""));
+  }
+  linhas.push("};", "", "const int ImagemBLU_WIDTH = 240;", "const int ImagemBLU_HEIGHT = 240;",
+    "#endif // IMAGEMBLU_H", "");
+  return linhas.join("\n");
+}
+
+/* ═══════════════ água + carinha ═══════════════ */
+let anguloGravidade = 0, agitacao = 0, tempo = 0;
+
+addEventListener("deviceorientation", e => {
+  if (e.gamma == null || e.beta == null) return;
+  anguloGravidade = Math.atan2(e.gamma, e.beta) * 180 / Math.PI;
+}, true);
+let ultimo = null;
+addEventListener("devicemotion", e => {
+  const a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
+  if (ultimo) {
+    const s = Math.hypot(a.x - ultimo.x, a.y - ultimo.y) + Math.abs(a.z - ultimo.z);
+    if (s > 1.2) agitacao = Math.min(1, agitacao + s / 18);
+  }
+  ultimo = { x:a.x, y:a.y, z:a.z };
+}, true);
+
+function onda(cx, topo, raio, t, amp, cor, escala, g) {
+  g.beginPath();
+  const esq = cx - raio * 1.6, dir = cx + raio * 1.6;
+  g.moveTo(esq, topo);
+  for (let x = esq; x <= dir; x += 4)
+    g.lineTo(x, topo + Math.sin(x/26 + t*2.4) * amp * escala + Math.cos(x/41 - t*1.3) * amp * .5 * escala);
+  g.lineTo(dir, topo + raio*3); g.lineTo(esq, topo + raio*3); g.closePath();
+  g.fillStyle = cor; g.fill();
+}
+
+function quadroAgua(dt) {
+  const cv = $("#agua"), g = cv.getContext("2d");
+  const L = cv.width, raio = L/2, cx = raio, cy = raio;
+  tempo += dt; agitacao *= 0.93;
+  g.clearRect(0, 0, L, L);
+  g.save();
+  g.beginPath(); g.arc(cx, cy, raio, 0, 7); g.clip();
+  g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--disco") || "#0D0F12";
+  g.fillRect(0, 0, L, L);
+  const alvo = (estado.nivel == null ? 62 : estado.nivel) / 100;
+  g.translate(cx, cy); g.rotate(-anguloGravidade * Math.PI / 180); g.translate(-cx, -cy);
+  const topo = cy + raio - 2*raio*alvo;
+  const amp = 3 + agitacao * 14;
+  onda(cx, topo,     raio, tempo,       amp, "rgba(94,157,178,.55)", 1,  g);
+  onda(cx, topo + 8, raio, tempo*1.4+2, amp, "rgba(94,157,178,.34)", .7, g);
+  g.restore();
+  g.beginPath(); g.arc(cx, cy, raio - 3, 0, 7);
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--borda");
+  g.lineWidth = 6; g.stroke();
+}
+
+let quadroI = 0, proximoQuadro = 0;
+function quadroRosto(agora) {
+  const humor = HUMORES[estado.humor] || "normal";
+  const lista = CARINHAS.sequencias[humor] || CARINHAS.sequencias.normal;
+  if (agora >= proximoQuadro) {
+    quadroI = (quadroI + 1) % lista.length;
+    proximoQuadro = agora + (humor === "normal" ? (quadroI === 0 ? 2000 : 420) : 333);
+  }
+  const formas = CARINHAS.quadros[lista[quadroI % lista.length]];
+  const cv = $("#rosto"), g = cv.getContext("2d");
+  g.clearRect(0, 0, cv.width, cv.height);
+  const f = cv.width / 150;
+  g.save(); g.scale(f, f);
+  for (const [c, d] of formas) { g.fillStyle = COR[c]; g.fill(new Path2D(d)); }
+  g.restore();
+}
+
+let anterior = 0;
+function laco(ts) {
+  const dt = anterior ? (ts - anterior) / 1000 : 0;
+  anterior = ts;
+  quadroAgua(Math.min(dt, .05));
+  quadroRosto(ts);
+  requestAnimationFrame(laco);
+}
+
+/* ═══════════════ slots ═══════════════ */
+let slotEscolhido = 0;
+function pintarSlots() {
+  document.querySelectorAll("#slots button").forEach((b, i) => {
+    const cheio = (estado.slots >> i) & 1;
+    b.classList.toggle("cheio", !!cheio);
+    b.textContent = cheio ? i : "·";
+  });
+  atualizarBotoesSlot();
+}
+function atualizarBotoesSlot() {
+  const cheio = (estado.slots >> slotEscolhido) & 1;
+  $("#slot-txt").textContent = "Slot escolhido: " + slotEscolhido + (cheio ? " (vai substituir o que está lá)" : " (vazio)");
+  $("#b-ver").disabled = !conectado || !cheio;
+  $("#b-apagar").disabled = !conectado || !cheio;
+}
+
+/* ═══════════════ animações ═══════════════ */
+const FABRICA = [
+  [[13,2000],[12,500],[13,500],[12,500],[13,2000],[12,500]],
+  [[6,333],[7,333],[8,333]], [[9,333],[10,333],[11,333]],
+  [[0,333],[1,333],[2,333]], [[3,333],[4,333],[5,333]]
+];
+const montagem = FABRICA.map(s => s.map(p => p.slice()));
+
+function nomeQuadro(q) {
+  if (q >= 100) return "sua #" + (q - 100);
+  if (q <= 2) return "feliz " + (q + 1);
+  if (q <= 5) return "joinha " + (q - 2);
+  if (q <= 8) return "sede " + (q - 5);
+  if (q <= 11) return "toque " + (q - 8);
+  return q === 12 ? "normal piscando" : "normal olhos abertos";
+}
+
+function montarEditores() {
+  $("#editores").innerHTML = "";
+  ROTULO.forEach((nome, e) => {
+    const c = document.createElement("div");
+    c.className = "cartao";
+    c.innerHTML = "<h2>" + nome + "</h2><ol class='passos'></ol>" +
+      "<div class='linha' style='margin-top:10px'>" +
+      "<button class='acao vazio b-add'>Adicionar quadro</button>" +
+      "<button class='acao b-salvar-seq' disabled>Salvar na garrafa</button></div>";
+    const ol = c.querySelector("ol");
+    montagem[e].forEach(([q, ms], i) => {
+      const li = document.createElement("li");
+      li.innerHTML = "<span class='nome'>" + nomeQuadro(q) + "</span><span class='ms'>" + ms + " ms</span>";
+      const mais = document.createElement("button"); mais.textContent = "+"; mais.title = "mais tempo";
+      mais.onclick = () => { montagem[e][i][1] = montagem[e][i][1] >= 3000 ? 250 : montagem[e][i][1] + 250; montarEditores(); };
+      const tira = document.createElement("button"); tira.textContent = "×"; tira.className = "tira"; tira.title = "tirar";
+      tira.onclick = () => { if (montagem[e].length > 1) { montagem[e].splice(i, 1); montarEditores(); } };
+      li.append(mais, tira); ol.append(li);
+    });
+    c.querySelector(".b-add").onclick = () => escolherQuadro(e);
+    c.querySelector(".b-salvar-seq").onclick = () => salvarSequencia(e);
+    $("#editores").append(c);
+  });
+  pintarConexao();
+}
+
+function escolherQuadro(e) {
+  if (montagem[e].length >= 12) { recado("Uma animação cabe até 12 quadros."); return; }
+  const opcoes = [];
+  for (let q = 0; q < 14; q++) opcoes.push(q);
+  for (let s = 0; s < SLOTS; s++) if ((estado.slots >> s) & 1) opcoes.push(100 + s);
+  const txt = opcoes.map((q, i) => i + ") " + nomeQuadro(q)).join("\n");
+  const r = prompt("Qual quadro?\n\n" + txt, "0");
+  const i = parseInt(r, 10);
+  if (isNaN(i) || i < 0 || i >= opcoes.length) return;
+  montagem[e].push([opcoes[i], 333]);
+  montarEditores();
+}
+
+async function salvarSequencia(e) {
+  const p = montagem[e];
+  const b = [0x05, e, p.length];
+  p.forEach(([q, ms]) => b.push(q, ms & 255, (ms >> 8) & 255));
+  try { await ctrl(b); recado("Animação de " + ROTULO[e] + " salva na garrafa.", true); }
+  catch (err) { recado("Não deu pra salvar: " + err.message); }
+}
+
+/* ═══════════════ ligações da tela ═══════════════ */
+ROTULO.forEach((nome, i) => {
+  const b = document.createElement("button");
+  b.textContent = nome; b.disabled = true; b.setAttribute("aria-pressed", "false");
+  b.onclick = async () => {
+    try { await car.rosto.writeValueWithResponse(new Uint8Array([i])); anotar("Pedi o rosto " + nome + "."); }
+    catch (e) { recado("Não consegui: " + e.message); }
+  };
+  $("#humores").append(b);
+});
+
+for (let s = 0; s < SLOTS; s++) {
+  const b = document.createElement("button");
+  b.textContent = "·"; b.setAttribute("aria-pressed", String(s === 0));
+  b.onclick = () => {
+    slotEscolhido = s;
+    document.querySelectorAll("#slots button").forEach((x, i) => x.setAttribute("aria-pressed", String(i === s)));
+    atualizarBotoesSlot();
+  };
+  $("#slots").append(b);
+}
+
+document.querySelectorAll("nav button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+    document.querySelectorAll("section.aba").forEach(s => { s.hidden = s.id !== "aba-" + b.dataset.aba; });
+  };
+});
+
+$("#b-conectar").onclick = conectar;
+$("#b-desconectar").onclick = () => { if (gatt) gatt.disconnect(); };
+$("#b-escolher").onclick = () => $("#arquivo").click();
+$("#arquivo").onchange = e => { if (e.target.files[0]) carregarImagem(e.target.files[0]); };
+["niveis","limpar","redondo"].forEach(id => $("#" + id).addEventListener("input", reprocessar));
+$("#b-enviar").onclick = enviarQuadro;
+$("#b-ver").onclick = () => ctrl([0x0B, 100 + slotEscolhido]);
+$("#b-apagar").onclick = () => ctrl([0x04, slotEscolhido]);
+$("#b-zerar").onclick = () => { if (confirm("Apagar todas as suas carinhas e voltar as animações de fábrica?")) ctrl([0x04, 255]); };
+$("#b-fabrica").onclick = () => ctrl([0x06]);
+$("#b-vazia").onclick = () => ctrl([0x07]);
+$("#b-cheia").onclick = () => ctrl([0x08]);
+$("#marg").addEventListener("input", e => {
+  const v = +e.target.value;
+  $("#marg-n").textContent = v ? v : "automática";
+});
+$("#b-marg").onclick = () => {
+  const v = +$("#marg").value;
+  ctrl([0x0D, v & 255, (v >> 8) & 255]);
+  recado(v ? ("Sensibilidade " + v + " salva na garrafa.") : "Sensibilidade volta pra automática.", true);
+};
+$("#b-recal").onclick = () => {
+  ctrl([0x0E]);
+  recado("Referência recalibrada. Não encoste na garrafa agora.", true);
+};
+$("#b-thr").onclick = () => {
+  const v = parseInt($("#thr").value, 10);
+  if (isNaN(v) || v < 20) { recado("Escolha um valor a partir de 20 ms."); return; }
+  ctrl([0x09, v & 255, (v >> 8) & 255]);
+};
+$("#b-h").onclick = () => {
+  if (!pixelsAtual) return;
+  const txt = gerarH(pixelsAtual);
+  const url = URL.createObjectURL(new Blob([txt], { type:"text/plain" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = "ImagemBLU.h"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  recado("Baixado ImagemBLU.h (" + Math.round(txt.length/1024) + " KB). Ponha ao lado do .ino e inclua no sketch.", true);
+};
+
+if (!navigator.bluetooth) {
+  const el = $("#sem-bt");
+  el.innerHTML = "<b>Este navegador não libera Bluetooth para esta página.</b><br>" +
+    "Web Bluetooth precisa de Chrome (ou Edge) no Android, e a página precisa estar num endereço https. " +
+    "O resto do app funciona: dá pra converter imagem e copiar o .h.";
+  el.hidden = false;
+  $("#b-conectar").disabled = true;
+}
+
+montarEditores();
+pintarConexao();
+pintarNivel();
+requestAnimationFrame(laco);
+</script>
+
+</body>
+</html>
