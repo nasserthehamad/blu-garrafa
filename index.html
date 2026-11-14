@@ -203,7 +203,7 @@
 
     <div class="cartao">
       <h2>Sensibilidade do toque</h2>
-      <p class="nota">O toque é capacitivo: a garrafa mede a capacitância do próprio corpo de aço. Encoste nela e veja a leitura mudar — é com esse número que se acerta a sensibilidade.</p>
+      <p class="nota">O toque é capacitivo: a garrafa mede a capacitância do próprio corpo de aço. Encostar <b>abaixa</b> a leitura (uns 90 solto, uns 15 com a mão) — o que conta é o tamanho da queda.</p>
 
       <div class="leituras">
         <div><span class="rot">leitura</span><b class="medida" id="t-leitura">—</b></div>
@@ -217,7 +217,7 @@
       <input type="range" id="marg" min="0" max="60" step="1" value="0">
       <p class="nota" style="margin:2px 0 0">
         Pra esquerda = mais sensível. <b>0 = automática</b> (um quinto da referência), que é o padrão.
-        O desvio precisa passar da linha pra contar como toque.
+        A queda precisa passar da linha pra contar como toque.
       </p>
       <div class="linha" style="margin-top:10px">
         <button class="acao" id="b-marg" disabled>Salvar sensibilidade</button>
@@ -290,6 +290,13 @@
       <p class="nota">Apaga suas carinhas e devolve as animações de fábrica. As 14 originais nunca são apagadas — elas moram no firmware.</p>
       <button class="acao vazio" id="b-zerar" disabled>Apagar tudo</button>
     </div>
+
+    <div class="cartao">
+      <h2>Formatar a memória</h2>
+      <p class="nota">Se a garrafa responder <b>"não deu pra gravar na memória"</b> ao receber uma carinha, é porque a área de memória dela nunca foi formatada. Formate uma vez aqui — leva uns 10 segundos e a garrafa reinicia sozinha no fim.</p>
+      <p class="nota">Isso apaga as carinhas que você já tiver gravado. As 14 de fábrica continuam.</p>
+      <button class="acao vazio" id="b-formatar" disabled>Formatar a memória</button>
+    </div>
   </section>
 
   <!-- ───────────────────────── animações ───────────────────────── -->
@@ -342,7 +349,7 @@ function pintarConexao() {
   $("#pilula-txt").textContent = conectado ? "conectada" : "desconectada";
   $("#b-desconectar").disabled = !conectado;
   $("#b-conectar").disabled = conectado;
-  document.querySelectorAll("#humores button, #b-thr, #b-marg, #b-recal, #b-vazia, #b-cheia, #b-ver, #b-apagar, #b-zerar, #b-fabrica, .b-salvar-seq")
+  document.querySelectorAll("#humores button, #b-thr, #b-marg, #b-recal, #b-vazia, #b-cheia, #b-ver, #b-apagar, #b-zerar, #b-formatar, #b-fabrica, .b-salvar-seq")
     .forEach(b => { b.disabled = !conectado; });
   atualizarBotoesSlot();
   $("#b-enviar").disabled = !conectado || !rleAtual || rleAtual.length > TETO;
@@ -417,7 +424,8 @@ function receber(qual, dv) {
 
 const ERROS = { 1:"a garrafa ficou sem memória", 2:"o quadro passou do tamanho máximo",
   3:"os dados chegaram corrompidos", 4:"o quadro não cobre a tela inteira",
-  5:"não deu pra gravar na memória da garrafa", 6:"slot inválido", 7:"não há célula de carga ligada" };
+  5:"não deu pra gravar na memória da garrafa — a área de memória dela nunca foi formatada. Use \"Formatar a memória\", no fim desta aba, e tente de novo",
+  6:"slot inválido", 7:"não há célula de carga ligada" };
 
 let terminarEnvio = null;
 function status(codigo, dado) {
@@ -440,20 +448,22 @@ const ctrl = bytes => car.ctrl && car.ctrl.writeValueWithResponse(new Uint8Array
 function pintarToque() {
   const { leitura, base, margem } = estado;
   if (leitura == null) return;
-  const desvio = Math.abs(leitura - base);
+  // No ESP32 encostar FAZ A LEITURA CAIR (medido na garrafa: ~90 solto, ~15 com a mao).
+  // So a queda conta, igual ao firmware — por isso "queda" e nao modulo da diferenca.
+  const queda = Math.max(0, base - leitura);
   const corte = margem || Math.max(2, Math.round(base / 5));
   $("#t-leitura").textContent = leitura;
   $("#t-base").textContent = base;
-  $("#t-desvio").textContent = desvio;
-  // A regua mostra o desvio contra o corte, com o dobro do corte como fim de escala:
+  $("#t-desvio").textContent = queda;
+  // A regua mostra a queda contra o corte, com o dobro do corte como fim de escala:
   // assim a linha do corte cai sempre no meio e da pra ver "o quanto passou".
   const escala = corte * 2 || 1;
-  $("#t-barra").style.width = Math.min(100, (desvio / escala) * 100) + "%";
+  $("#t-barra").style.width = Math.min(100, (queda / escala) * 100) + "%";
   $("#t-corte").style.left = "50%";
-  $(".regua").classList.toggle("passou", desvio > corte);
-  $("#t-estado").textContent = desvio > corte
-    ? "Encostado — passou do corte (" + desvio + " > " + corte + ")."
-    : "Solto — faltam " + (corte - desvio + 1) + " pro corte de " + corte + ".";
+  $(".regua").classList.toggle("passou", queda > corte);
+  $("#t-estado").textContent = queda > corte
+    ? "Encostado — a leitura caiu " + queda + ", mais que o corte de " + corte + "."
+    : "Solto — a leitura caiu " + queda + "; falta(m) " + (corte - queda + 1) + " pro corte de " + corte + ".";
   if (document.activeElement !== $("#marg")) {
     $("#marg").value = margem;
     $("#marg-n").textContent = margem ? margem : "automática";
@@ -848,6 +858,12 @@ $("#b-enviar").onclick = enviarQuadro;
 $("#b-ver").onclick = () => ctrl([0x0B, 100 + slotEscolhido]);
 $("#b-apagar").onclick = () => ctrl([0x04, slotEscolhido]);
 $("#b-zerar").onclick = () => { if (confirm("Apagar todas as suas carinhas e voltar as animações de fábrica?")) ctrl([0x04, 255]); };
+$("#b-formatar").onclick = async () => {
+  if (!confirm("Formatar a memória de carinhas da garrafa?\n\nLeva uns 10 segundos, apaga as carinhas que você gravou (as 14 de fábrica continuam) e a garrafa reinicia no fim.")) return;
+  recado("Formatando… não desligue a garrafa. Isso leva uns 10 segundos.");
+  try { await ctrl([0x0C]); } catch (e) { /* a garrafa pode cair o BLE durante o format */ }
+  setTimeout(() => recado("Formatou. Se ela tiver desconectado, conecte de novo e mande a carinha."), 12000);
+};
 $("#b-fabrica").onclick = () => ctrl([0x06]);
 $("#b-vazia").onclick = () => ctrl([0x07]);
 $("#b-cheia").onclick = () => ctrl([0x08]);
