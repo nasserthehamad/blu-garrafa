@@ -726,7 +726,7 @@
     <div id="sem-bt" class="aviso ruim" hidden></div>
     <div class="cartao">
       <h2>Bluetooth</h2>
-      <p class="nota">Bluetooth LE — não precisa parear nas configurações do celular.</p>
+      <p class="nota">Bluetooth LE — não precisa parear nas configurações do celular. <b class="num">Versão do app: 2.0.7</b></p>
       <div class="botoes">
         <button class="botao-sec" id="b-conectar"><svg><use href="#i-bt"/></svg>Procurar a garrafa</button>
         <button class="botao-borda" id="b-desconectar" disabled>Desconectar</button>
@@ -967,7 +967,7 @@ function pintarConexao() {
   atualizarBotoesSlot();
   $("#b-enviar").disabled = !conectado || !rleAtual || rleAtual.length > TETO;
   pintarMinha();
-  $("#sobre-versao").textContent = "App 2.0 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)")) + " · Bluetooth do navegador: " + (navigator.bluetooth ? "disponível" : "indisponível");
+  $("#sobre-versao").textContent = "App 2.0.7 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)")) + " · Bluetooth do navegador: " + (navigator.bluetooth ? "disponível" : "indisponível");
 }
 
 // Quando a busca nem abre, o Chrome devolve NotFoundError na hora — o mesmo nome do
