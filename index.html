@@ -970,6 +970,20 @@ function pintarConexao() {
   $("#sobre-versao").textContent = "App 2.0 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)")) + " · Bluetooth do navegador: " + (navigator.bluetooth ? "disponível" : "indisponível");
 }
 
+// Quando a busca nem abre, o Chrome devolve NotFoundError na hora — o mesmo nome do
+// "fechou a lista sem escolher". Antes isso ficava so no diario e o botao parecia morto.
+// Agora todo caminho diz na tela o que aconteceu, com a mensagem original do Chrome.
+function explicarFalhaBt(e) {
+  const m = (e && e.message) || "";
+  if (/adapter|not available|unavailable/i.test(m))
+    return "O Chrome diz que o Bluetooth do celular não está disponível. Confira: Bluetooth ligado, Localização ligada, e em Configurações › Apps › Chrome › Permissões: \"Dispositivos próximos\" e \"Localização\" permitidos. (" + m + ")";
+  if (/location/i.test(m))
+    return "O Chrome precisa da Localização ligada pra procurar aparelhos Bluetooth. Ligue a Localização e tente de novo. (" + m + ")";
+  if (e && (e.name === "NotAllowedError" || e.name === "SecurityError"))
+    return "O Chrome bloqueou o Bluetooth para este site. Em Configurações › Apps › Chrome › Permissões, libere \"Dispositivos próximos\". (" + m + ")";
+  return "A busca não abriu: " + (e && e.name ? e.name + " — " : "") + m;
+}
+
 async function conectar() {
   if (!navigator.bluetooth) { recado(motivoSemBluetooth(), false); return; }
   try {
@@ -1001,8 +1015,9 @@ async function conectar() {
     if (m.includes("permissions policy") || m.includes("disallowed")) {
       recado("Esta página está num lugar que bloqueia Bluetooth. Abra pelo endereço github.io.", false); return;
     }
-    if (e && e.name === "NotFoundError") anotar("Nenhuma garrafa escolhida.");
-    else { anotar("Falhou: " + m); recado("Não consegui conectar: " + m, false); }
+    if (e && e.name === "NotFoundError" && /cancel/i.test(m)) { anotar("Nenhuma garrafa escolhida."); recado("Nenhuma garrafa escolhida."); return; }
+    anotar("Falhou (" + (e && e.name) + "): " + m);
+    recado(explicarFalhaBt(e), false);
   }
 }
 
