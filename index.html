@@ -429,6 +429,11 @@
     <h1 class="ola" id="ola">Olá!</h1>
     <p class="ola-sub" id="ola-sub">Primeiro gole do dia?</p>
     <a class="ola-nome" href="#perfil" id="ola-nome" hidden>Conte seu peso e sua rotina pra calcular a meta</a>
+    <div class="cartao linha-cartao faixa-azul" id="c-instalar" hidden style="margin-top:14px">
+      <span class="ic"><svg><use href="#i-baixar"/></svg></span>
+      <span class="txt"><b>Instale a BLU como app</b><span>Abre em tela cheia, sem a barra do navegador.</span></span>
+      <button class="link" id="b-instalar">Instalar</button>
+    </div>
 
     <div class="anel-bloco">
       <button class="anel" id="anel" aria-label="Ver e ajustar a meta">
@@ -957,16 +962,16 @@ function pintarConexao() {
   $("#m-ponto").classList.toggle("on", conectado);
   $("#m-con").textContent = conectado ? "Conectada" : "Desconectada";
   $("#b-desconectar").disabled = !conectado;
-  $("#b-conectar").disabled = conectado || !navigator.bluetooth;
+  $("#b-conectar").disabled = conectado;
   $$("#humores button, #b-thr, #b-marg, #b-recal, #b-zerar, #b-formatar, #b-fabrica, .b-salvar-seq").forEach(b => { b.disabled = !conectado; });
   atualizarBotoesSlot();
   $("#b-enviar").disabled = !conectado || !rleAtual || rleAtual.length > TETO;
   pintarMinha();
-  $("#sobre-versao").textContent = "App 2.0 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)"));
+  $("#sobre-versao").textContent = "App 2.0 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)")) + " · Bluetooth do navegador: " + (navigator.bluetooth ? "disponível" : "indisponível");
 }
 
 async function conectar() {
-  if (!navigator.bluetooth) { recado("Este navegador não tem Bluetooth para páginas. Use o Chrome no Android.", false); return; }
+  if (!navigator.bluetooth) { recado(motivoSemBluetooth(), false); return; }
   try {
     const dev = await navigator.bluetooth.requestDevice({ filters:[{ services:[SERVICO] }], optionalServices:[SERVICO] });
     anotar("Conectando em " + (dev.name || "garrafa") + "…");
@@ -1875,9 +1880,34 @@ $("#b-h").onclick = () => {
 };
 
 if (!navigator.bluetooth) {
-  $("#sem-bt").innerHTML = "<b>Este navegador não libera Bluetooth para páginas.</b><br>Use o Chrome no Android. O resto do app (água, metas, estatísticas) funciona normalmente.";
+  $("#sem-bt").innerHTML = "<b>" + motivoSemBluetooth() + "</b><br>O resto do app (água, metas, estatísticas) funciona normalmente.";
   $("#sem-bt").hidden = false;
 }
+
+/* ═══════════════ app instalável + motivo de não ter Bluetooth ═══════════════ */
+// Diz exatamente por que o Bluetooth nao esta disponivel, em vez de so deixar o botao
+// cinza: no celular quase sempre e o navegador errado (Samsung Internet, app embutido).
+function motivoSemBluetooth() {
+  const ua = navigator.userAgent;
+  if (!window.isSecureContext) return "Esta página não abriu em https, e sem isso o navegador não libera Bluetooth.";
+  if (/SamsungBrowser/i.test(ua)) return "Você está no Samsung Internet, que não libera Bluetooth para sites. Abra no Chrome.";
+  if (/Firefox|FxiOS/i.test(ua)) return "O Firefox não libera Bluetooth para sites. Abra no Chrome.";
+  if (/iPhone|iPad|iPod/i.test(ua)) return "No iPhone nenhum navegador libera Bluetooth para sites (limite da Apple).";
+  if (/; wv\)|FBAN|FBAV|Instagram|WhatsApp/i.test(ua)) return "Isto abriu dentro de outro app, que não libera Bluetooth. Abra no Chrome.";
+  return "Este navegador não libera Bluetooth para sites. Abra no Chrome do Android.";
+}
+// Instalar como app de verdade (tela cheia, sem barra do navegador). O "Adicionar a
+// tela inicial" comum cria so um atalho que abre o site dentro do navegador.
+let pedidoInstalar = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedidoInstalar = e; $("#c-instalar").hidden = false; });
+addEventListener("appinstalled", () => { pedidoInstalar = null; $("#c-instalar").hidden = true; recado("BLU instalada. Abra pelo ícone novo."); });
+$("#b-instalar").onclick = async () => {
+  if (!pedidoInstalar) return;
+  pedidoInstalar.prompt();
+  try { await pedidoInstalar.userChoice; } catch (e) {}
+  pedidoInstalar = null; $("#c-instalar").hidden = true;
+};
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 /* ═══════════════ partida ═══════════════ */
 aplicarAparencia();
