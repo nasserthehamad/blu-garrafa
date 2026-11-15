@@ -366,6 +366,56 @@
   .abas a svg { width:25px; height:25px; }
   .abas a[aria-current="page"] { color:var(--azul-texto); font-weight:700; }
 
+
+  /* ── tela cheia sem rolar: cada tela ocupa a altura exata e o anel / a carinha encolhem ── */
+  :root { --abas-h:66px; }
+  html, body { height:100%; }
+  body { overflow:hidden; overscroll-behavior:none; }
+  .app { height:100vh; height:100dvh; display:flex; flex-direction:column; padding-bottom:calc(var(--abas-h) + env(safe-area-inset-bottom)); }
+  .tela.ativa { display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+    padding-bottom:12px; scrollbar-width:none; }
+  .tela.ativa::-webkit-scrollbar { display:none; }
+  .tela > * { flex-shrink:0; }
+  .tela > .elastico { flex:1 1 0; min-height:0; }
+  .tela > .anel-bloco.elastico, .tela > .disco-bloco.elastico { min-height:170px; }
+  .anel-bloco { container-type:size; min-height:150px; align-items:center; margin:6px 0 10px; }
+  .anel { width:min(100cqw, 100cqh, 300px); }
+  .anel-txt b { font-size:min(20cqh, 3.75rem); }
+  .anel-txt b small { font-size:.55em; }
+  .anel-txt span { font-size:min(6.2cqh, 1.0625rem); }
+  #t-inicio .topo { margin-bottom:8px; }
+  #t-inicio h1.ola { font-size:2rem; }
+  #t-inicio p.ola-sub { font-size:1.125rem; margin:4px 0 2px; }
+  #t-inicio h2.secao { margin:6px 0 10px; font-size:1.125rem; }
+  #t-inicio .dia { margin-bottom:14px; }
+  #t-inicio .linha-cartao.faixa-azul { padding:12px 16px; margin-bottom:10px; }
+  #t-inicio .duo { margin-top:12px; }
+  #t-inicio .mini { padding:12px; }
+  .disco-bloco { container-type:size; min-height:150px; display:grid; place-items:center; }
+  .disco-bloco .disco-grande { width:min(calc(100cqh - 24px), calc(100cqw - 24px), 260px); margin:0; }
+  #t-minha .estado-blu { margin:10px 0 10px; }
+  #t-minha h2.secao { margin:14px 0 10px; }
+  .lista-rola { display:flex; flex-direction:column; }
+  .lista-rola > .rola { flex:1; min-height:0; overflow-y:auto; margin:0 -6px; padding:0 6px; }
+  details.sanfona > summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  details.sanfona > summary::-webkit-details-marker { display:none; }
+  details.sanfona > summary h2 { margin:0; }
+  details.sanfona > summary::after { content:""; width:9px; height:9px; border-right:2px solid var(--tinta-2); border-bottom:2px solid var(--tinta-2);
+    transform:rotate(45deg); transition:transform .2s; margin-right:4px; }
+  details.sanfona[open] > summary::after { transform:rotate(-135deg); }
+  details.sanfona[open] > summary { margin-bottom:10px; }
+  .horario label.hora { display:flex; align-items:center; justify-content:space-between; font-size:.9375rem; font-weight:600; color:var(--tinta-2); margin-bottom:12px; }
+  .horario input[type=time] { font:inherit; font-weight:700; color:var(--tinta); background:var(--cartao-2); border:1.5px solid var(--linha); border-radius:12px; padding:8px 10px; }
+  .aviso:not(.ruim) { background:var(--azul-claro); color:var(--azul-texto); font-weight:600; }
+  .recado { bottom:calc(var(--abas-h) + 14px + env(safe-area-inset-bottom)); }
+  @media (max-height:700px) {
+    #t-inicio h2.secao { display:none; }
+    #t-inicio .linha-cartao.faixa-azul { padding:10px 14px; }
+    #t-inicio h1.ola { font-size:1.625rem; }
+    #t-inicio p.ola-sub { font-size:1rem; }
+    .botao-principal { min-height:50px; }
+    #t-inicio .dia { margin-bottom:10px; }
+  }
   @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
 </style>
 </head>
@@ -435,7 +485,7 @@
       <button class="link" id="b-instalar">Instalar</button>
     </div>
 
-    <div class="anel-bloco">
+    <div class="anel-bloco elastico">
       <button class="anel" id="anel" aria-label="Ver e ajustar a meta">
         <svg viewBox="0 0 200 200" aria-hidden="true">
           <circle cx="100" cy="100" r="86" fill="none" stroke="var(--azul-claro)" stroke-width="16"/>
@@ -521,10 +571,10 @@
         <b class="num" id="cons-pct">0%</b></div>
       <div><h2>Sua consistência</h2><p id="cons-txt">0 de 7 dias com a meta atingida</p></div>
     </div>
-    <div class="cartao">
+    <div class="cartao lista-rola elastico" style="min-height:160px">
       <h2>Registros</h2>
       <p class="nota">Últimos 7 dias. Errou um registro? Apague aqui.</p>
-      <div id="registros"></div>
+      <div id="registros" class="rola"></div>
     </div>
   </section>
 
@@ -583,10 +633,10 @@
   <!-- ═══════════════ MINHA BLU ═══════════════ -->
   <section class="tela" id="t-minha">
     <header class="cab esq"><h1>Minha BLU</h1><span></span></header>
-    <div class="disco-grande">
+    <div class="disco-bloco elastico"><div class="disco-grande">
       <canvas id="disco" width="480" height="480" aria-label="A carinha da garrafa"></canvas>
       <a class="lapis" href="#carinha" aria-label="Criar carinha"><svg><use href="#i-lapis"/></svg></a>
-    </div>
+    </div></div>
     <p class="estado-blu centro" id="estado-blu">Desconectada — mostrando a prévia aqui no celular.</p>
     <p class="rotulo-c">Escolha ou crie uma expressão</p>
     <div class="expressoes" id="expressoes"></div>
@@ -674,6 +724,11 @@
         <span class="txt"><b>Meta diária</b><small id="m-meta">2,0 L por dia</small></span>
         <svg class="seta"><use href="#i-seta"/></svg>
       </a>
+      <a class="item" href="#lembretes" style="text-decoration:none">
+        <svg class="ic"><use href="#i-relogio"/></svg>
+        <span class="txt"><b>Lembretes</b><small id="m-lemb">Desligados</small></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
       <a class="item" href="#minha" style="text-decoration:none">
         <svg class="ic"><use href="#i-carinha"/></svg>
         <span class="txt"><b>Personalização da BLU</b><small>Escolha suas expressões</small></span>
@@ -691,6 +746,34 @@
         <svg class="seta"><use href="#i-seta"/></svg>
       </a>
     </div>
+  </section>
+
+  <!-- ═══════════════ LEMBRETES ═══════════════ -->
+  <section class="tela" id="t-lembretes" data-pai="mais">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Lembretes</h1><span></span>
+    </header>
+    <div id="l-sem" class="aviso" hidden>Avisos com o app fechado só funcionam no app Android da BLU.</div>
+    <div class="cartao">
+      <label class="troca">Me lembrar de beber água <span class="chave"><input type="checkbox" id="l-ativo" class="so-app"><i></i></span></label>
+      <p class="nota">O celular avisa quando você passa um tempo sem registrar e ainda não bateu a meta — e o relógio pareado recebe junto. No próprio aviso dá pra tocar em <b>Bebi 250 ml</b>.</p>
+    </div>
+    <div class="cartao">
+      <h2>Avisar a cada</h2>
+      <div class="seg" id="seg-int" style="margin:10px 0 4px">
+        <button data-p="60" aria-pressed="false">1 h</button><button data-p="90" aria-pressed="true">1h30</button>
+        <button data-p="120" aria-pressed="false">2 h</button><button data-p="180" aria-pressed="false">3 h</button>
+      </div>
+    </div>
+    <div class="cartao horario">
+      <h2 style="margin-bottom:12px">Só neste horário</h2>
+      <label class="hora">Das <input type="time" id="l-ini" value="08:00"></label>
+      <label class="hora" style="margin-bottom:0">Até <input type="time" id="l-fim" value="22:00"></label>
+    </div>
+    <span class="elastico"></span>
+    <button class="botao-borda so-app" id="b-l-testar" style="width:100%;margin-bottom:12px">Testar um aviso agora</button>
+    <button class="botao-principal so-app" id="b-l-salvar">Salvar lembretes</button>
   </section>
 
   <!-- ═══════════════ PERFIL ═══════════════ -->
@@ -726,7 +809,7 @@
     <div id="sem-bt" class="aviso ruim" hidden></div>
     <div class="cartao">
       <h2>Bluetooth</h2>
-      <p class="nota">Bluetooth LE — não precisa parear nas configurações do celular. <b class="num">Versão do app: 2.0.7</b></p>
+      <p class="nota">Bluetooth LE — não precisa parear nas configurações do celular. <b class="num">Versão do app: 2.1.0</b></p>
       <div class="botoes">
         <button class="botao-sec" id="b-conectar"><svg><use href="#i-bt"/></svg>Procurar a garrafa</button>
         <button class="botao-borda" id="b-desconectar" disabled>Desconectar</button>
@@ -737,8 +820,8 @@
       <p class="nota">A garrafa volta sozinha pro normal depois de alguns segundos.</p>
       <div class="humores" id="humores"></div>
     </div>
-    <div class="cartao">
-      <h2>Sensibilidade do toque</h2>
+    <details class="cartao sanfona">
+      <summary><h2>Sensibilidade do toque</h2></summary>
       <p class="nota">O toque é capacitivo: encostar <b>abaixa</b> a leitura (uns 90 solto, uns 15 com a mão). O que conta é o tamanho da queda.</p>
       <div class="leituras">
         <div><span class="rot">leitura</span><b class="num" id="t-leitura">—</b></div>
@@ -760,19 +843,19 @@
         <input type="number" id="thr" min="20" max="3000" step="10" placeholder="200" style="flex:2">
         <button class="botao-sec" id="b-thr" disabled style="flex:1">Salvar</button>
       </div>
-    </div>
-    <div class="cartao">
-      <h2>Memória da garrafa</h2>
+    </details>
+    <details class="cartao sanfona">
+      <summary><h2>Memória da garrafa</h2></summary>
       <p class="nota">Se a garrafa responder <b>"não deu pra gravar na memória"</b>, a área das carinhas nunca foi formatada — então nada foi gravado e não há o que perder. Formatar leva uns 10 segundos e a garrafa reinicia no fim. Precisa do firmware v5.5.</p>
       <div class="botoes">
         <button class="botao-borda" id="b-formatar" disabled>Formatar a memória</button>
         <button class="botao-borda perigo" id="b-zerar" disabled>Apagar tudo</button>
       </div>
-    </div>
-    <div class="cartao">
-      <h2>O que aconteceu</h2>
+    </details>
+    <details class="cartao sanfona">
+      <summary><h2>O que aconteceu</h2></summary>
       <div id="diario">Nada ainda.</div>
-    </div>
+    </details>
   </section>
 
   <!-- ═══════════════ APARÊNCIA ═══════════════ -->
@@ -847,6 +930,84 @@
 <div class="recado" id="recado" role="status" aria-live="polite" hidden><span id="recado-txt"></span><button id="recado-acao" hidden></button></div>
 
 <script>
+/* ═══════════════ ponte com o app Android (BLUNativo) ═══════════════ */
+// Dentro do APK nao existe Web Bluetooth: o app Kotlin expoe window.BLUNativo e este bloco
+// imita o pedaco de navigator.bluetooth que o resto do codigo usa. No navegador, NATIVO e
+// null e nada aqui muda o comportamento.
+const NATIVO = window.BLUNativo || null;
+if (NATIVO) {
+  const paraB64 = u8 => { let t = ""; for (let i = 0; i < u8.length; i += 8192) t += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(t); };
+  const deB64 = b => { const t = atob(b || ""), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; };
+  const comoU8 = v => v instanceof Uint8Array ? v : ArrayBuffer.isView(v) ? new Uint8Array(v.buffer, v.byteOffset, v.byteLength) : new Uint8Array(v);
+  const erroNativo = m => { const e = new Error(m || "falhou"); e.name = "BLUNativo"; return e; };
+  const pendentes = new Map(); let seq = 0;
+  const pedir = (fn, ...args) => new Promise((ok, falha) => {
+    const id = String(++seq); pendentes.set(id, { ok, falha });
+    try { NATIVO[fn](id, ...args); } catch (e) { pendentes.delete(id); falha(erroNativo(String(e && e.message || e))); }
+  });
+  let caracs = new Map(), aparelho = null;
+  class Carac extends EventTarget {
+    constructor(uuid) { super(); this.uuid = uuid; this.value = null; }
+    writeValueWithResponse(v)    { return pedir("escrever", this.uuid, paraB64(comoU8(v)), true).then(() => undefined); }
+    writeValueWithoutResponse(v) { return pedir("escrever", this.uuid, paraB64(comoU8(v)), false).then(() => undefined); }
+    writeValue(v) { return this.writeValueWithResponse(v); }
+    readValue() { return pedir("ler", this.uuid).then(b => { const u = deB64(b); this.value = new DataView(u.buffer); return this.value; }); }
+    startNotifications() { return pedir("notificar", this.uuid).then(() => this); }
+  }
+  window.BLUPonte = {
+    evento(j) {
+      const ev = typeof j === "string" ? JSON.parse(j) : j;
+      if (ev.pedido) {
+        const p = pendentes.get(ev.pedido); if (!p) return; pendentes.delete(ev.pedido);
+        ev.ok ? p.ok(ev.dados) : p.falha(erroNativo(ev.erro));
+      } else if (ev.tipo === "notificacao") {
+        const c = caracs.get(ev.uuid); if (!c) return;
+        const u = deB64(ev.dados); c.value = new DataView(u.buffer);
+        c.dispatchEvent(new Event("characteristicvaluechanged"));
+      } else if (ev.tipo === "desconectado") {
+        for (const [, p] of pendentes) p.falha(erroNativo("A garrafa desconectou."));
+        pendentes.clear(); caracs = new Map();
+        if (aparelho) aparelho.dispatchEvent(new Event("gattserverdisconnected"));
+      }
+    },
+    voltou() { try { puxarPendentes(); pintarTudo(); } catch (e) {} }
+  };
+  const bt = {
+    async requestDevice() {
+      const nome = await pedir("procurar");
+      const dev = new EventTarget(); dev.name = nome || "BLU"; aparelho = dev;
+      const servidor = {
+        connected:false, device:dev,
+        async getPrimaryService() {
+          return { async getCharacteristic(u) {
+            u = String(u).toLowerCase();
+            if (!caracs.has(u)) throw erroNativo("característica ausente");
+            return caracs.get(u);
+          } };
+        },
+        disconnect() { try { NATIVO.desligar(); } catch (e) {} }
+      };
+      dev.gatt = { async connect() {
+        caracs = new Map();
+        const lista = JSON.parse(await pedir("ligar") || "[]");
+        for (const u of lista) caracs.set(String(u).toLowerCase(), new Carac(String(u).toLowerCase()));
+        servidor.connected = true; return servidor;
+      } };
+      return dev;
+    },
+    getAvailability: async () => true
+  };
+  try { Object.defineProperty(navigator, "bluetooth", { value:bt, configurable:true }); } catch (e) { navigator.bluetooth = bt; }
+  document.documentElement.classList.add("nativo");
+}
+// guarda arquivo: no APK vai pra pasta Downloads; no navegador, download normal
+function baixar(nome, mime, texto) {
+  if (NATIVO) { const r = NATIVO.salvar(nome, mime, texto); return r || "Salvo em Downloads/" + nome; }
+  const url = URL.createObjectURL(new Blob([texto], { type:mime }));
+  const a = document.createElement("a"); a.href = url; a.download = nome; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  return null;
+}
 /* ═══════════════ dados das carinhas (vetorizadas dos Imagem*.h) ═══════════════ */
 const HUMORES = ["normal","sede","toque","feliz","joinha"];
 const ROTULO  = ["Normal","Sede","Toque","Feliz","Joinha"];
@@ -967,7 +1128,7 @@ function pintarConexao() {
   atualizarBotoesSlot();
   $("#b-enviar").disabled = !conectado || !rleAtual || rleAtual.length > TETO;
   pintarMinha();
-  $("#sobre-versao").textContent = "App 2.0.7 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)")) + " · Bluetooth do navegador: " + (navigator.bluetooth ? "disponível" : "indisponível");
+  $("#sobre-versao").textContent = "App 2.1.0" + (NATIVO ? " (Android)" : "") + " · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)")) + (NATIVO ? " · Bluetooth nativo" : " · Bluetooth do navegador: " + (navigator.bluetooth ? "disponível" : "indisponível"));
 }
 
 // Quando a busca nem abre, o Chrome devolve NotFoundError na hora — o mesmo nome do
@@ -975,6 +1136,7 @@ function pintarConexao() {
 // Agora todo caminho diz na tela o que aconteceu, com a mensagem original do Chrome.
 function explicarFalhaBt(e) {
   const m = (e && e.message) || "";
+  if (e && e.name === "BLUNativo") return m;
   if (/adapter|not available|unavailable/i.test(m))
     return "O Chrome diz que o Bluetooth do celular não está disponível. Confira: Bluetooth ligado, Localização ligada, e em Configurações › Apps › Chrome › Permissões: \"Dispositivos próximos\" e \"Localização\" permitidos. (" + m + ")";
   if (/location/i.test(m))
@@ -1735,7 +1897,7 @@ function aplicarAparencia() {
 
 /* ═══════════════ navegação ═══════════════ */
 const ABA_DE = { inicio:"inicio", estatisticas:"estatisticas", historico:"estatisticas", desafios:"desafios",
-  minha:"minha", carinha:"minha", animacoes:"minha", mais:"mais", perfil:"mais", conexao:"mais", aparencia:"mais", sobre:"mais", metas:"inicio" };
+  minha:"minha", carinha:"minha", animacoes:"minha", mais:"mais", perfil:"mais", conexao:"mais", aparencia:"mais", sobre:"mais", lembretes:"mais", metas:"inicio" };
 let navegouNoApp = false, telaAtual = "inicio";
 function rota() {
   let id = location.hash.slice(1) || "inicio";
@@ -1746,10 +1908,12 @@ function rota() {
   const aba = $(".abas a[data-aba='" + ABA_DE[id] + "']"); if (aba) aba.setAttribute("aria-current", "page");
   if (id === "metas") metaRascunho = meta;
   if (id === "perfil") pintarPerfil();
+  if (id === "lembretes") pintarLembretes();
   pintarTudo();
   scrollTo(0, 0);
 }
 function pintarTudo() {
+  enviarResumo();
   pintarInicio(); pintarMais();
   if (telaAtual === "estatisticas") pintarEstatisticas();
   if (telaAtual === "historico") pintarHistorico();
@@ -1758,10 +1922,61 @@ function pintarTudo() {
   if (telaAtual === "minha") pintarMinha();
 }
 addEventListener("hashchange", () => { navegouNoApp = true; rota(); });
+// botao "voltar" do Android: o app nativo chama isto; devolve false quando ja esta no inicio
+window.bluVoltar = () => {
+  if (!$("#folha").hidden) { fecharFolha(); return true; }
+  const t = $(".tela.ativa");
+  if (t && t.dataset.pai) { location.hash = t.dataset.pai; return true; }
+  if (telaAtual !== "inicio") { location.hash = "inicio"; return true; }
+  return false;
+};
 $$(".voltar").forEach(b => b.onclick = () => {
   const pai = b.closest(".tela").dataset.pai || "inicio";
   if (navegouNoApp && history.length > 1) history.back(); else location.hash = pai;
 });
+
+/* ═══════════════ lembretes (app Android) ═══════════════ */
+// O app nativo guarda um resumo do dia pra decidir, com o app fechado, se vale avisar.
+let ultimoResumo = "";
+function enviarResumo() {
+  if (!NATIVO) return;
+  const r = ritmoHoje(), ult = registros.length ? registros[registros.length - 1].t : 0;
+  const txt = JSON.stringify({ dia:chaveDia(new Date()), total:r.total, meta, ultimo:ult });
+  if (txt === ultimoResumo) return; ultimoResumo = txt;
+  try { NATIVO.resumo(txt); } catch (e) {}
+}
+// "Bebi 250 ml" tocado na notificacao fica guardado no Android ate o app abrir
+function puxarPendentes() {
+  if (!NATIVO) return;
+  let lista = [];
+  try { lista = JSON.parse(NATIVO.pegarPendentes() || "[]"); } catch (e) { return; }
+  if (!lista.length) return;
+  let soma = 0;
+  for (const p of lista) if (p && p.t && p.ml) { registros.push({ t:+p.t, ml:+p.ml }); soma += +p.ml; }
+  registros.sort((a, b) => a.t - b.t); salvarRegistros();
+  recado("+" + soma + " ml que você marcou pelo aviso.");
+}
+let lemb = Object.assign({ ativo:false, intervalo:90, inicio:"08:00", fim:"22:00" }, guardado.ler("lembretes", {}));
+if (NATIVO) { try { Object.assign(lemb, JSON.parse(NATIVO.lerLembretes() || "{}")); } catch (e) {} }
+function pintarLembretes() {
+  $("#l-ativo").checked = !!lemb.ativo;
+  $$("#seg-int button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.p === lemb.intervalo)));
+  $("#l-ini").value = lemb.inicio; $("#l-fim").value = lemb.fim;
+  $("#l-sem").hidden = !!NATIVO;
+  $$("#t-lembretes .so-app").forEach(el => el.disabled = !NATIVO);
+  $("#m-lemb").textContent = !NATIVO ? "Só no app Android" : lemb.ativo ? "A cada " + rotIntervalo(lemb.intervalo) + ", das " + lemb.inicio + " às " + lemb.fim : "Desligados";
+}
+const rotIntervalo = m => m % 60 ? Math.floor(m / 60) + "h" + pad(m % 60) : (m / 60) + " h";
+$$("#seg-int button").forEach(b => b.onclick = () => { lemb.intervalo = +b.dataset.p; pintarLembretes(); });
+$("#l-ativo").onchange = e => { lemb.ativo = e.target.checked; };
+$("#b-l-salvar").onclick = () => {
+  lemb.inicio = $("#l-ini").value || "08:00"; lemb.fim = $("#l-fim").value || "22:00";
+  guardado.gravar("lembretes", lemb);
+  if (NATIVO) { const r = NATIVO.lembretes(JSON.stringify(lemb)); if (r) { recado(r, false); return; } }
+  pintarLembretes();
+  recado(lemb.ativo ? "Lembretes ligados: a cada " + rotIntervalo(lemb.intervalo) + "." : "Lembretes desligados.");
+};
+$("#b-l-testar").onclick = () => { if (NATIVO) { const r = NATIVO.testarAviso(); if (r) recado(r, false); } };
 
 /* ═══════════════ laço de desenho ═══════════════ */
 function laco(ts) {
@@ -1817,7 +2032,8 @@ $$("#seg-tema button").forEach(b => b.onclick = () => { ajustes.tema = b.dataset
 $("#f-grande").onchange = e => { ajustes.grande = e.target.checked; guardado.gravar("ajustes", ajustes); aplicarAparencia(); };
 
 $("#b-convidar").onclick = async () => {
-  const dados = { title:"BLU", text:"Topa o desafio? Beber " + litros(meta) + " de água em 5 dias desta semana.", url:location.origin + location.pathname };
+  const dados = { title:"BLU", text:"Topa o desafio? Beber " + litros(meta) + " de água em 5 dias desta semana.", url:"https://nasserthehamad.github.io/blu-garrafa/" };
+  if (NATIVO) { NATIVO.compartilhar(dados.text + " " + dados.url); return; }
   try {
     if (navigator.share) await navigator.share(dados);
     else { await navigator.clipboard.writeText(dados.text + " " + dados.url); recado("Convite copiado. Cole onde quiser."); }
@@ -1826,10 +2042,8 @@ $("#b-convidar").onclick = async () => {
 
 $("#b-exportar").onclick = () => {
   const txt = JSON.stringify({ app:"BLU", versao:2, exportado:new Date().toISOString(), perfil, meta, registros }, null, 1);
-  const url = URL.createObjectURL(new Blob([txt], { type:"application/json" }));
-  const a = document.createElement("a"); a.href = url; a.download = "blu-registros-" + chaveDia(new Date()) + ".json"; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-  recado("Cópia salva nos downloads (" + registros.length + " registros).");
+  const r = baixar("blu-registros-" + chaveDia(new Date()) + ".json", "application/json", txt);
+  recado((r || "Cópia salva nos downloads") + " (" + registros.length + " registros).", !(r && /^Não/.test(r)));
 };
 $("#b-importar").onclick = () => $("#f-importar").click();
 $("#f-importar").onchange = async e => {
@@ -1890,10 +2104,9 @@ $("#b-thr").onclick = () => {
 };
 $("#b-h").onclick = () => {
   if (!pixelsAtual) return;
-  const txt = gerarH(pixelsAtual), url = URL.createObjectURL(new Blob([txt], { type:"text/plain" }));
-  const a = document.createElement("a"); a.href = url; a.download = "ImagemBLU.h"; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-  recado("Baixado ImagemBLU.h (" + Math.round(txt.length / 1024) + " KB).");
+  const txt = gerarH(pixelsAtual);
+  const r = baixar("ImagemBLU.h", "text/plain", txt);
+  recado((r || "Baixado ImagemBLU.h") + " (" + Math.round(txt.length / 1024) + " KB).");
 };
 
 if (!navigator.bluetooth) {
@@ -1916,7 +2129,7 @@ function motivoSemBluetooth() {
 // Instalar como app de verdade (tela cheia, sem barra do navegador). O "Adicionar a
 // tela inicial" comum cria so um atalho que abre o site dentro do navegador.
 let pedidoInstalar = null;
-addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedidoInstalar = e; $("#c-instalar").hidden = false; });
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); if (NATIVO) return; pedidoInstalar = e; $("#c-instalar").hidden = false; });
 addEventListener("appinstalled", () => { pedidoInstalar = null; $("#c-instalar").hidden = true; recado("BLU instalada. Abra pelo ícone novo."); });
 $("#b-instalar").onclick = async () => {
   if (!pedidoInstalar) return;
@@ -1924,13 +2137,15 @@ $("#b-instalar").onclick = async () => {
   try { await pedidoInstalar.userChoice; } catch (e) {}
   pedidoInstalar = null; $("#c-instalar").hidden = true;
 };
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if (!NATIVO && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 /* ═══════════════ partida ═══════════════ */
 aplicarAparencia();
 montarExpressoes();
 montarEditores();
 pintarConexao();
+puxarPendentes();
+pintarLembretes();
 rota();
 // clima: so busca sozinho se a pessoa ja autorizou antes (temos coordenadas) e o dado tem mais de 1 h
 if (clima && clima.lat != null && (!clima.em || Date.now() - clima.em > 36e5)) buscarClima(false);
