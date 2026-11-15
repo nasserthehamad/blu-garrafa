@@ -1015,7 +1015,9 @@ async function conectar() {
     if (m.includes("permissions policy") || m.includes("disallowed")) {
       recado("Esta página está num lugar que bloqueia Bluetooth. Abra pelo endereço github.io.", false); return;
     }
-    if (e && e.name === "NotFoundError" && /cancel/i.test(m)) { anotar("Nenhuma garrafa escolhida."); recado("Nenhuma garrafa escolhida."); return; }
+    // mostra sempre a frase original do Chrome: "cancelled" tambem aparece quando a lista
+    // fecha sozinha sem a pessoa ver, e so o texto exato diferencia os casos
+    if (e && e.name === "NotFoundError" && /cancel/i.test(m)) { anotar("Nenhuma garrafa escolhida (" + m + ")"); recado("A lista fechou sem escolher. Chrome: " + m, false); return; }
     anotar("Falhou (" + (e && e.name) + "): " + m);
     recado(explicarFalhaBt(e), false);
   }
