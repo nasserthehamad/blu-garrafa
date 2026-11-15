@@ -1,0 +1,25 @@
+{
+  "name": "BLU",
+  "short_name": "BLU",
+  "description": "Meta de água, registro do dia, estatísticas e as carinhas da garrafa BLU.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EEF5FD",
+  "theme_color": "#EAF3FD",
+  "icons": [
+    {
+      "src": "icone.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icone.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

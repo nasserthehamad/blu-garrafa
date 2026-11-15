@@ -3,312 +3,845 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FDFAF7">
-<meta name="description" content="Controla a garrafa BLU por Bluetooth do navegador.">
+<meta name="theme-color" content="#EAF3FD">
+<meta name="description" content="BLU — a companheira da sua garrafa. Meta de água, registro do dia, estatísticas e as carinhas da garrafa por Bluetooth.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
-<title>BLU Garrafa</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style>
-  html { color-scheme: light dark; }
-  :root { padding: env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px); }
-  body { margin:0; -webkit-text-size-adjust:100%; }
-  img { max-width:100%; }
-  [hidden] { display:none !important; }
-</style>
-</head>
-<body>
+<title>BLU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
 <style>
   :root {
-    --tinta:#241C18; --fundo:#FDFAF7; --papel:#F5EDE6; --borda:#E4D8C9;
-    --coral:#C0704F; --agua:#5E9DB2; --apagado:#7D6C60; --alerta:#B23A36; --bom:#4F7D52;
-    --disco:#0D0F12;
-    --display:"Baloo 2", system-ui, sans-serif;
-    --corpo:"IBM Plex Sans", system-ui, sans-serif;
-    --dado:"IBM Plex Mono", ui-monospace, monospace;
+    --fundo:#EEF5FD; --brilho:#DCEBFC; --cartao:#FFFFFF; --cartao-2:#F3F8FE; --borda-cartao:rgba(20,70,140,.06);
+    --tinta:#0E1B33; --tinta-2:#4A5875; --apagado:#8592A8; --linha:#E3EAF4;
+    --marinho:#0B2C5F; --azul:#1E7BE6; --azul-claro:#DCEBFD; --azul-texto:#1662C4;
+    --ok:#1F9D63; --alerta:#D64545; --ouro:#F2A900; --fogo:#FF6A2B;
+    --disco:#0B0E14;
+    --sombra:0 8px 28px rgba(22,72,150,.08), 0 1px 2px rgba(22,72,150,.05);
+    --raio:22px;
+    --fonte:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --tinta:#F2EAE3; --fundo:#16120F; --papel:#211B16; --borda:#3A2F26;
-      --coral:#E09068; --agua:#7FBED2; --apagado:#A39284; --alerta:#E07A75; --bom:#8FC095;
-      --disco:#08090B;
+      --fundo:#0A1120; --brilho:#11233F; --cartao:#121C2D; --cartao-2:#18243A; --borda-cartao:rgba(255,255,255,.05);
+      --tinta:#EAF1FB; --tinta-2:#AAB7CC; --apagado:#76859C; --linha:#243149;
+      --marinho:#3D8FEF; --azul:#3D8FEF; --azul-claro:#1A3256; --azul-texto:#7DB5F7;
+      --ok:#3FBF86; --alerta:#F07272; --ouro:#F5BC2E; --fogo:#FF8550;
+      --disco:#05070B;
+      --sombra:0 1px 0 rgba(255,255,255,.03);
+      color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --tinta:#F2EAE3; --fundo:#16120F; --papel:#211B16; --borda:#3A2F26;
-    --coral:#E09068; --agua:#7FBED2; --apagado:#A39284; --alerta:#E07A75; --bom:#8FC095;
-    --disco:#08090B;
+    --fundo:#0A1120; --brilho:#11233F; --cartao:#121C2D; --cartao-2:#18243A; --borda-cartao:rgba(255,255,255,.05);
+    --tinta:#EAF1FB; --tinta-2:#AAB7CC; --apagado:#76859C; --linha:#243149;
+    --marinho:#3D8FEF; --azul:#3D8FEF; --azul-claro:#1A3256; --azul-texto:#7DB5F7;
+    --ok:#3FBF86; --alerta:#F07272; --ouro:#F5BC2E; --fogo:#FF8550;
+    --disco:#05070B;
+    --sombra:0 1px 0 rgba(255,255,255,.03);
+    color-scheme: dark;
   }
 
+  html { font-size:16px; -webkit-text-size-adjust:100%; }
+  html.grande { font-size:18px; }
   * { box-sizing:border-box; }
-  body { background:var(--fundo); color:var(--tinta); font-family:var(--corpo); margin:0; }
-  .env { max-width:560px; margin:0 auto; padding:0 16px 56px; }
+  body {
+    margin:0; min-height:100vh; color:var(--tinta); font-family:var(--fonte);
+    background:var(--fundo);
+    background-image:radial-gradient(130% 55% at 0% 0%, var(--brilho) 0%, transparent 62%),
+                     radial-gradient(90% 40% at 100% 8%, var(--brilho) 0%, transparent 60%);
+    background-attachment:fixed;
+    -webkit-tap-highlight-color:transparent;
+  }
+  [hidden] { display:none !important; }
+  button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+  button:disabled { cursor:default; }
+  a { color:inherit; }
+  svg { display:block; }
+  :focus-visible { outline:2px solid var(--azul); outline-offset:3px; border-radius:10px; }
+  .num { font-variant-numeric:tabular-nums; }
 
-  header { display:flex; flex-direction:column; align-items:center; gap:10px; padding-block:20px 12px; }
-  h1 { font-family:var(--display); font-weight:800; font-size:28px; letter-spacing:.01em; margin:0; line-height:1; }
-  .sub { font-size:12px; color:var(--apagado); margin:0; text-align:center; }
+  .app { max-width:480px; margin:0 auto; padding:0 16px calc(100px + env(safe-area-inset-bottom)); }
+  .tela { display:none; padding-top:calc(14px + env(safe-area-inset-top)); animation:entra .22s ease; }
+  .tela.ativa { display:block; }
+  @keyframes entra { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 
-  .palco { position:relative; width:190px; height:190px; margin:4px auto 0; }
-  .palco canvas { position:absolute; inset:0; width:100%; height:100%; }
+  /* ── topo ── */
+  .topo { display:flex; align-items:center; justify-content:space-between; min-height:44px; margin-bottom:18px; }
+  .marca { display:flex; align-items:center; gap:6px; font-weight:800; font-size:1.75rem; letter-spacing:.02em; color:var(--marinho); }
+  .marca svg { width:30px; height:30px; color:var(--azul); }
+  .chip-bt { display:inline-flex; align-items:center; gap:7px; font-size:.9375rem; font-weight:600; color:var(--azul-texto);
+    padding:8px 4px 8px 8px; border-radius:999px; }
+  .chip-bt svg { width:18px; height:18px; }
+  .ponto { width:9px; height:9px; border-radius:50%; background:var(--apagado); flex:none; }
+  .ponto.on { background:var(--ok); }
 
-  .pilula { display:inline-flex; align-items:center; gap:8px; background:var(--papel);
-    border:1px solid var(--borda); border-radius:999px; padding:6px 14px; font-size:13px; }
-  .bolinha { width:8px; height:8px; border-radius:50%; background:var(--alerta); flex:none; }
-  .pilula.on .bolinha { background:var(--bom); }
+  .cab { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; min-height:44px; margin-bottom:16px; }
+  .cab h1 { text-align:center; font-size:1.375rem; font-weight:700; margin:0; }
+  .cab.esq { grid-template-columns:1fr 44px; }
+  .cab.esq h1 { text-align:left; }
+  .icone-bt { width:44px; height:44px; display:grid; place-items:center; border-radius:14px; color:var(--tinta); }
+  .icone-bt svg { width:24px; height:24px; }
+  .icone-bt.azul { color:var(--azul-texto); }
 
-  nav { display:flex; gap:4px; background:var(--papel); border:1px solid var(--borda);
-    border-radius:999px; padding:4px; margin:14px 0 18px; }
-  nav button { flex:1; border:0; background:none; color:var(--apagado); font:inherit; font-size:13px;
-    font-weight:500; padding:8px 4px; border-radius:999px; cursor:pointer; }
-  nav button[aria-selected="true"] { background:var(--fundo); color:var(--tinta); font-weight:600;
-    box-shadow:0 1px 2px rgba(0,0,0,.06); }
+  h1.ola { font-size:2.25rem; font-weight:800; margin:0; letter-spacing:-.01em; line-height:1.1; }
+  p.ola-sub { font-size:1.25rem; font-weight:600; margin:6px 0 4px; color:var(--tinta); }
+  .ola-nome { color:var(--azul-texto); text-decoration:underline; text-underline-offset:3px; font-size:.9375rem; font-weight:600; }
 
-  section.aba[hidden] { display:none; }
-  .cartao { background:var(--papel); border:1px solid var(--borda); border-radius:18px;
-    padding:18px; margin-bottom:14px; }
-  .cartao > h2 { font-family:var(--display); font-weight:600; font-size:17px; margin:0 0 4px; }
-  .cartao > p.nota { font-size:12.5px; color:var(--apagado); margin:0 0 14px; line-height:1.5; }
+  /* ── anel ── */
+  .anel-bloco { position:relative; display:flex; justify-content:center; margin:14px 0 18px; }
+  .anel { position:relative; width:min(68vw, 280px); aspect-ratio:1; border-radius:50%; }
+  .anel svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .anel-txt { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .anel-txt b { font-size:3.75rem; font-weight:800; line-height:1; letter-spacing:-.02em; }
+  .anel-txt b small { font-size:2rem; font-weight:800; }
+  .anel-txt span { font-size:1.0625rem; font-weight:500; color:var(--tinta); margin-top:6px; }
+  .anel-txt span + span { margin-top:2px; }
+  #gota { position:absolute; right:-2px; top:-6px; width:92px; height:108px; pointer-events:none; }
 
-  button.acao { font:inherit; font-weight:600; font-size:14px; border-radius:12px; padding:11px 18px;
-    border:1px solid var(--coral); background:var(--coral); color:#fff; cursor:pointer; }
-  button.acao.vazio { background:transparent; color:var(--tinta); border-color:var(--borda); }
-  button.acao:disabled { opacity:.42; cursor:default; }
-  button.acao.larga { width:100%; }
+  /* ── cartões ── */
+  .cartao { display:block; width:100%; background:var(--cartao); border:1px solid var(--borda-cartao); border-radius:var(--raio);
+    box-shadow:var(--sombra); padding:16px; margin-bottom:14px; }
+  .cartao h2 { font-size:1.0625rem; font-weight:700; margin:0 0 4px; }
+  .cartao p.nota { font-size:.8125rem; color:var(--tinta-2); margin:0 0 12px; line-height:1.5; }
+  .cartao p.nota:last-child { margin-bottom:0; }
+  .faixa-azul { background:var(--azul-claro); border-color:transparent; box-shadow:none; }
+  .linha-cartao { display:flex; align-items:center; gap:14px; }
+  .linha-cartao .ic { width:40px; height:40px; flex:none; color:var(--azul); display:grid; place-items:center; }
+  .linha-cartao .ic svg { width:34px; height:34px; }
+  .linha-cartao .txt { flex:1; min-width:0; }
+  .linha-cartao b { display:block; font-size:1.0625rem; font-weight:700; }
+  .linha-cartao span { display:block; font-size:.9375rem; color:var(--tinta-2); margin-top:2px; }
+  .seta { width:22px; height:22px; color:var(--tinta-2); flex:none; }
 
-  .linha { display:flex; flex-wrap:wrap; gap:8px; }
-  .linha.entre { justify-content:space-between; align-items:center; }
+  h2.secao { font-size:1.25rem; font-weight:700; margin:22px 0 12px; }
+  .secao-linha { display:flex; align-items:center; justify-content:space-between; margin:22px 0 12px; }
+  .secao-linha h2 { font-size:1.125rem; font-weight:700; margin:0; }
+  .link { color:var(--azul-texto); font-weight:600; font-size:.9375rem; display:inline-flex; align-items:center; gap:2px; }
 
-  .humores { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:8px; }
-  .humores button { font:inherit; font-size:13px; font-weight:500; padding:10px 6px; border-radius:12px;
-    border:1px solid var(--borda); background:var(--fundo); color:var(--tinta); cursor:pointer; }
-  .humores button[aria-pressed="true"] { border-color:var(--coral); color:var(--coral); font-weight:600; }
-  .humores button:disabled { opacity:.42; cursor:default; }
+  /* ── seu dia ── */
+  .dia { position:relative; display:grid; grid-template-columns:repeat(5,1fr); padding:0 4px; margin-bottom:18px; }
+  .dia::before { content:""; position:absolute; left:12%; right:12%; top:15px; border-top:2px dotted var(--linha); }
+  .marco { position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .marco svg { width:26px; height:32px; }
+  .marco .g-cheia { fill:url(#gradGota); }
+  .marco .g-vazia { fill:var(--linha); }
+  .marco .g-agora { fill:var(--cartao); stroke:var(--azul); stroke-width:1.6; }
+  .marco span { font-size:.9375rem; font-weight:600; color:var(--tinta-2); }
 
-  .medida { font-family:var(--dado); font-variant-numeric:tabular-nums; }
-  .nivel-num { font-size:34px; font-weight:500; line-height:1; }
-  .origem { font-size:12px; color:var(--apagado); line-height:1.45; }
-  .origem b { color:var(--tinta); font-weight:600; }
+  .botao-principal { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; min-height:58px; border-radius:999px;
+    background:var(--marinho); color:#fff; font-size:1.125rem; font-weight:700; box-shadow:0 10px 24px rgba(11,44,95,.25); }
+  .botao-principal svg { width:24px; height:24px; }
+  .botao-principal:disabled { opacity:.45; box-shadow:none; }
+  .botao-sec { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; min-height:50px; border-radius:16px;
+    background:var(--azul-claro); color:var(--azul-texto); font-weight:700; font-size:1rem; }
+  .botao-sec svg { width:20px; height:20px; }
+  .botao-sec:disabled, .botao-borda:disabled { opacity:.45; }
+  .botao-borda { min-height:46px; padding:0 16px; border-radius:14px; border:1.5px solid var(--linha); font-weight:700; font-size:.9375rem; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .botao-borda.perigo { color:var(--alerta); }
+  .botoes { display:flex; gap:10px; flex-wrap:wrap; }
+  .botoes > * { flex:1; }
 
-  .slots { display:grid; grid-template-columns:repeat(8,1fr); gap:5px; }
-  .slots button { aspect-ratio:1; border-radius:9px; border:1px solid var(--borda); background:var(--fundo);
-    color:var(--apagado); font-family:var(--dado); font-size:11px; cursor:pointer; padding:0; }
-  .slots button.cheio { color:var(--tinta); border-color:var(--agua); background:color-mix(in srgb,var(--agua) 12%,transparent); }
-  .slots button[aria-pressed="true"] { border-color:var(--coral); border-width:2px; color:var(--coral); font-weight:600; }
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+  .mini { display:flex; gap:10px; align-items:flex-start; padding:14px; margin:0; text-align:left; }
+  .mini .ic { width:30px; height:30px; flex:none; }
+  .mini .rot { display:block; font-size:.8125rem; font-weight:700; color:var(--tinta); }
+  .mini .val { display:flex; align-items:baseline; gap:4px; margin-top:6px; font-size:1.375rem; font-weight:800; }
+  .mini .val small { font-size:.8125rem; font-weight:600; color:var(--tinta-2); }
+  .mini .val .ok { width:16px; height:16px; color:var(--ok); align-self:center; }
+  .mini .sub { display:block; font-size:.75rem; color:var(--tinta-2); margin-top:2px; }
 
-  .previa { display:flex; justify-content:center; padding:6px 0 14px; }
-  .previa .disco { width:180px; height:180px; border-radius:50%; background:var(--disco);
-    border:6px solid var(--borda); overflow:hidden; }
+  /* ── segmentado ── */
+  .seg { display:flex; background:var(--azul-claro); border-radius:999px; padding:4px; margin-bottom:16px; }
+  .seg button { flex:1; min-height:38px; border-radius:999px; font-weight:600; font-size:.9375rem; color:var(--tinta-2); text-align:center; }
+  .seg button[aria-pressed="true"] { background:var(--marinho); color:#fff; }
+
+  /* ── gráficos ── */
+  .grafico { position:relative; }
+  .grafico svg { width:100%; height:auto; overflow:visible; }
+  .grafico .eixo { font-size:11px; fill:var(--apagado); font-family:var(--fonte); }
+  .grafico .grade { stroke:var(--linha); stroke-width:1; }
+  .grafico .ref { stroke:var(--tinta-2); stroke-width:1; }
+  .grafico .ref-txt { font-size:11px; font-weight:700; fill:var(--tinta-2); font-family:var(--fonte); }
+  .grafico .barra { fill:var(--azul); }
+  .grafico .barra.vazia { fill:var(--azul-claro); }
+  .grafico .alvo { fill:transparent; cursor:pointer; }
+  .grafico .linha-serie { fill:none; stroke:var(--azul); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+  .grafico .area { fill:var(--azul); opacity:.1; }
+  .grafico .pto { fill:var(--azul); stroke:var(--cartao); stroke-width:2; }
+  .grafico .pilula-v rect { fill:var(--marinho); }
+  .grafico .pilula-v text { fill:#fff; font-size:11px; font-weight:700; font-family:var(--fonte); }
+  .dica { position:absolute; pointer-events:none; background:var(--tinta); color:var(--cartao); font-size:.8125rem; font-weight:700;
+    padding:6px 9px; border-radius:10px; transform:translate(-50%, -110%); white-space:nowrap; }
+  .vazio-graf { text-align:center; font-size:.875rem; color:var(--tinta-2); padding:28px 12px; }
+
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat { display:flex; gap:10px; align-items:center; padding:14px; margin:0; }
+  .stat .ic { width:30px; height:30px; flex:none; }
+  .stat .rot { display:block; font-size:.8125rem; font-weight:600; color:var(--tinta-2); }
+  .stat b { display:block; font-size:1.375rem; font-weight:800; margin-top:2px; }
+  .stat .sub { display:block; font-size:.75rem; color:var(--apagado); }
+
+  /* ── metas ── */
+  .meta-roda { display:flex; align-items:center; justify-content:center; gap:14px; margin:6px 0 22px; }
+  .meta-roda .mm { width:52px; height:52px; border-radius:50%; background:var(--azul-claro); color:var(--azul-texto); display:grid; place-items:center; }
+  .meta-roda .mm svg { width:26px; height:26px; }
+  .meta-anel { position:relative; width:190px; aspect-ratio:1; }
+  .meta-anel svg { width:100%; height:100%; }
+  .meta-anel .dentro { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .meta-anel .dentro svg { width:26px; height:26px; color:var(--azul); margin-bottom:4px; }
+  .meta-anel b { font-size:2.5rem; font-weight:800; line-height:1; }
+  .meta-anel span { font-size:1rem; font-weight:500; margin-top:4px; }
+  .base { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:8px 0 16px; }
+  .base button { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 2px; border-radius:16px; text-align:center; }
+  .base svg { width:24px; height:24px; color:var(--marinho); }
+  .base span { font-size:.8125rem; color:var(--tinta-2); }
+  .base b { font-size:.9375rem; font-weight:700; }
+  .sugestao { display:flex; align-items:center; gap:10px; }
+  .sugestao svg { width:22px; height:22px; color:var(--azul); flex:none; }
+  .sugestao div { flex:1; font-size:.875rem; line-height:1.45; }
+
+  /* ── desafios ── */
+  .desafio { display:flex; align-items:center; gap:14px; background:linear-gradient(135deg, var(--azul-claro), var(--cartao)); }
+  .desafio .txt { flex:1; }
+  .desafio h2 { font-size:1.125rem; }
+  .desafio p { margin:2px 0 12px; font-size:.9375rem; }
+  .progresso { display:flex; align-items:center; gap:10px; }
+  .progresso .trilho { flex:1; height:10px; border-radius:999px; background:var(--linha); overflow:hidden; }
+  .progresso .trilho i { display:block; height:100%; border-radius:999px; background:var(--azul); width:0; transition:width .3s; }
+  .progresso b { font-size:.9375rem; font-weight:700; }
+  .trofeu { width:72px; height:72px; flex:none; }
+  .conquistas { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .conquista { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; }
+  .conquista .med { width:68px; height:68px; border-radius:50%; display:grid; place-items:center; box-shadow:var(--sombra); background:var(--cartao); }
+  .conquista .med svg { width:38px; height:38px; }
+  .conquista.bloq .med { filter:grayscale(1); opacity:.38; }
+  .conquista span { font-size:.75rem; font-weight:600; color:var(--tinta-2); line-height:1.25; }
+
+  /* ── minha blu ── */
+  .disco-grande { position:relative; width:min(64vw, 240px); aspect-ratio:1; margin:6px auto 10px; border-radius:50%;
+    background:var(--disco); box-shadow:0 0 0 7px var(--azul), 0 14px 34px rgba(11,44,95,.28); }
+  .disco-grande canvas { width:100%; height:100%; display:block; border-radius:50%; }
+  .disco-grande .lapis { position:absolute; right:4%; top:4%; width:40px; height:40px; border-radius:50%; background:var(--marinho); color:#fff;
+    display:grid; place-items:center; box-shadow:0 0 0 3px var(--cartao); }
+  .disco-grande .lapis svg { width:18px; height:18px; }
+  .centro { text-align:center; }
+  .estado-blu { font-size:.875rem; color:var(--tinta-2); margin:0 0 16px; }
+  .rotulo-c { font-size:1rem; font-weight:700; margin:0 0 12px; text-align:center; }
+  .expressoes { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+  .expr { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .expr .bola { width:100%; max-width:62px; aspect-ratio:1; border-radius:18px; background:var(--cartao); box-shadow:var(--sombra); display:grid; place-items:center; padding:6px; }
+  .expr canvas { width:100%; height:100%; border-radius:50%; background:var(--disco); }
+  .expr span { font-size:.75rem; font-weight:600; color:var(--tinta-2); }
+  .expr[aria-pressed="true"] .bola { box-shadow:0 0 0 2.5px var(--azul); }
+
+  .lista { padding:4px 0; }
+  .lista .item { display:flex; align-items:center; gap:14px; width:100%; min-height:58px; padding:8px 16px; }
+  .lista .item + .item { border-top:1px solid var(--linha); }
+  .lista .item .ic { width:26px; height:26px; color:var(--marinho); flex:none; }
+  .lista .item .txt { flex:1; min-width:0; }
+  .lista .item b { display:block; font-size:.9375rem; font-weight:700; }
+  .lista .item small { display:block; font-size:.8125rem; color:var(--tinta-2); margin-top:1px; }
+  .lista .item .dir { font-size:.8125rem; color:var(--tinta-2); display:flex; align-items:center; gap:6px; }
+
+  .perfil { display:flex; align-items:center; gap:14px; }
+  .avatar { width:56px; height:56px; border-radius:50%; background:var(--azul); color:#fff; display:grid; place-items:center; font-size:1.5rem; font-weight:800; flex:none; }
+  .perfil .txt { flex:1; }
+  .perfil b { display:block; font-size:1.125rem; font-weight:700; }
+  .perfil small { color:var(--tinta-2); font-size:.875rem; }
+
+  /* ── formulários ── */
+  label.campo { display:block; font-size:.875rem; font-weight:600; color:var(--tinta-2); margin:14px 0 6px; }
+  input[type=text], input[type=number] { width:100%; font:inherit; font-size:1rem; padding:12px 14px; border-radius:14px;
+    border:1.5px solid var(--linha); background:var(--cartao-2); color:var(--tinta); }
+  input[type=range] { width:100%; accent-color:var(--azul); }
+  .troca { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px; font-size:.9375rem; font-weight:600; }
+  .chave { position:relative; width:50px; height:30px; flex:none; }
+  .chave input { position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; }
+  .chave i { position:absolute; inset:0; border-radius:999px; background:var(--linha); transition:background .2s; pointer-events:none; }
+  .chave i::after { content:""; position:absolute; left:3px; top:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .2s; }
+  .chave input:checked + i { background:var(--azul); }
+  .chave input:checked + i::after { transform:translateX(20px); }
+
+  /* ── garrafa / conexão ── */
+  .leituras { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; text-align:center; background:var(--cartao-2); border-radius:14px; padding:10px 6px; }
+  .leituras .rot { display:block; font-size:.6875rem; color:var(--tinta-2); text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px; }
+  .leituras b { font-size:1.25rem; font-weight:700; }
+  .regua { position:relative; height:10px; border-radius:999px; background:var(--linha); margin-top:10px; overflow:hidden; }
+  .regua i { display:block; height:100%; width:0; background:var(--azul); transition:width .12s; }
+  .regua.passou i { background:var(--ok); }
+  .regua span { position:absolute; top:-2px; width:2px; height:14px; background:var(--tinta); left:50%; }
+  .humores { display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:8px; }
+  .humores button { min-height:44px; border-radius:14px; border:1.5px solid var(--linha); font-weight:600; font-size:.875rem; text-align:center; }
+  .humores button[aria-pressed="true"] { border-color:var(--azul); color:var(--azul-texto); }
+  .humores button:disabled { opacity:.45; }
+  #diario { font-family:ui-monospace, "SF Mono", Menlo, monospace; font-size:.75rem; color:var(--tinta-2); line-height:1.7; max-height:180px; overflow-y:auto; white-space:pre-wrap; }
+
+  .slots { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; }
+  .slots button { aspect-ratio:1; border-radius:10px; border:1.5px solid var(--linha); color:var(--apagado); font-size:.75rem; font-weight:700; text-align:center; }
+  .slots button.cheio { color:var(--azul-texto); border-color:var(--azul); background:var(--azul-claro); }
+  .slots button[aria-pressed="true"] { box-shadow:0 0 0 2.5px var(--marinho); color:var(--tinta); }
+  .previa { display:flex; justify-content:center; padding:4px 0 14px; }
+  .previa .disco { width:190px; height:190px; border-radius:50%; background:var(--disco); box-shadow:0 0 0 6px var(--linha); overflow:hidden; }
   .previa canvas { width:100%; height:100%; display:block; }
-
-  label.campo { display:block; font-size:12.5px; color:var(--apagado); margin:14px 0 6px; }
-  input[type=range] { width:100%; accent-color:var(--coral); }
-  input[type=number], input[type=text] { font:inherit; font-family:var(--dado); width:100%;
-    padding:10px 12px; border-radius:10px; border:1px solid var(--borda);
-    background:var(--fundo); color:var(--tinta); }
-  .troca { display:flex; align-items:center; gap:10px; font-size:13.5px; margin:10px 0; }
-  .troca input { accent-color:var(--coral); width:18px; height:18px; }
-
-  .leituras { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; text-align:center;
-    background:var(--fundo); border:1px solid var(--borda); border-radius:12px; padding:10px 6px; }
-  .leituras .rot { display:block; font-size:10.5px; color:var(--apagado); text-transform:uppercase;
-    letter-spacing:.06em; margin-bottom:2px; }
-  .leituras b { font-size:20px; font-weight:500; }
-  .regua { position:relative; height:8px; border-radius:999px; background:var(--borda);
-    margin-top:10px; overflow:hidden; }
-  .regua i { display:block; height:100%; width:0; background:var(--agua); transition:width .12s; }
-  .regua.passou i { background:var(--coral); }
-  .regua span { position:absolute; top:-3px; width:2px; height:14px; background:var(--tinta); left:0; }
-
-  .barra { height:6px; border-radius:999px; background:var(--borda); overflow:hidden; margin-top:8px; }
-  .barra i { display:block; height:100%; background:var(--coral); width:0; transition:width .18s; }
-
-  .aviso { border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:14px; }
-  .aviso.ruim { background:color-mix(in srgb,var(--alerta) 12%,transparent); color:var(--alerta); }
-  .aviso.bom  { background:color-mix(in srgb,var(--bom) 14%,transparent); color:var(--bom); }
+  .barra-env { height:8px; border-radius:999px; background:var(--linha); overflow:hidden; margin-top:12px; }
+  .barra-env i { display:block; height:100%; background:var(--azul); width:0; transition:width .18s; }
+  .aviso { border-radius:14px; padding:12px 14px; font-size:.875rem; line-height:1.5; margin-bottom:14px; }
+  .aviso.ruim { background:color-mix(in srgb, var(--alerta) 12%, transparent); color:var(--alerta); }
 
   ol.passos { list-style:none; padding:0; margin:0; }
-  ol.passos li { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;
-    border-bottom:1px solid var(--borda); }
+  ol.passos li { display:flex; align-items:center; gap:8px; padding:8px 0; font-size:.875rem; border-bottom:1px solid var(--linha); }
   ol.passos li:last-child { border-bottom:0; }
-  ol.passos .nome { flex:1; }
-  ol.passos .ms { font-family:var(--dado); font-size:12px; color:var(--apagado); }
-  ol.passos button { border:0; background:none; color:var(--apagado); font:inherit; font-size:16px;
-    cursor:pointer; padding:0 5px; line-height:1; }
+  ol.passos .nome { flex:1; font-weight:600; }
+  ol.passos .ms { font-size:.8125rem; color:var(--tinta-2); }
+  ol.passos button { width:32px; height:32px; border-radius:10px; text-align:center; font-size:1.125rem; color:var(--tinta-2); }
   ol.passos button.tira { color:var(--alerta); }
 
-  #diario { font-family:var(--dado); font-size:11.5px; color:var(--apagado); line-height:1.7;
-    max-height:170px; overflow-y:auto; }
+  /* ── histórico ── */
+  .dia-reg { border-top:1px solid var(--linha); }
+  .dia-reg:first-child { border-top:0; }
+  .dia-reg summary { list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; min-height:48px;
+    font-size:.9375rem; font-weight:700; color:var(--tinta); }
+  .dia-reg summary::-webkit-details-marker { display:none; }
+  .dia-reg summary > span:first-child { display:flex; align-items:center; gap:6px; }
+  .dia-reg summary::after { content:""; width:8px; height:8px; border-right:2px solid var(--tinta-2); border-bottom:2px solid var(--tinta-2);
+    transform:rotate(45deg); margin:0 6px 4px 12px; transition:transform .2s; }
+  .dia-reg[open] summary::after { transform:rotate(-135deg); margin-bottom:-4px; }
+  .dia-reg summary .num { margin-left:auto; color:var(--tinta-2); }
+  .ok-dia { width:16px; height:16px; color:var(--ok); }
+  .reg { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--linha); }
+  .reg:last-child { border-bottom:0; }
+  .reg svg.g { width:18px; height:22px; color:var(--azul); flex:none; }
+  .reg .ml { flex:1; font-weight:700; }
+  .reg .hora { color:var(--tinta-2); font-size:.875rem; }
+  .reg button { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; color:var(--apagado); }
+  .reg button svg { width:18px; height:18px; }
+  .consist { display:flex; align-items:center; gap:16px; }
+  .consist .roda { width:78px; height:78px; position:relative; flex:none; }
+  .consist .roda svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .consist .roda b { position:absolute; inset:0; display:grid; place-items:center; font-size:1.25rem; font-weight:800; }
+  .consist h2 { margin:0; }
+  .consist p { margin:2px 0 0; font-size:.9375rem; color:var(--tinta-2); }
 
-  .tabela-h { width:100%; height:120px; font-family:var(--dado); font-size:10px; }
-  :focus-visible { outline:2px solid var(--coral); outline-offset:2px; }
+  /* ── folha de registro ── */
+  .veu { position:fixed; inset:0; background:rgba(5,15,35,.45); z-index:40; animation:aparece .2s ease; }
+  @keyframes aparece { from { opacity:0; } }
+  .folha { position:fixed; left:0; right:0; bottom:0; z-index:41; background:var(--cartao); border-radius:28px 28px 0 0;
+    padding:10px 18px calc(22px + env(safe-area-inset-bottom)); max-width:520px; margin:0 auto; animation:sobe .24s ease; }
+  @keyframes sobe { from { transform:translateY(40px); opacity:0; } }
+  .folha .puxador { width:44px; height:5px; border-radius:999px; background:var(--linha); margin:0 auto 14px; }
+  .folha h2 { font-size:1.25rem; font-weight:800; margin:0 0 14px; }
+  .copos { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:18px; }
+  .copo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 4px; border-radius:16px; background:var(--cartao-2); border:1.5px solid transparent; text-align:center; }
+  .copo svg { width:28px; height:28px; color:var(--azul); }
+  .copo b { font-size:.9375rem; }
+  .copo span { font-size:.6875rem; color:var(--tinta-2); font-weight:600; }
+  .copo[aria-pressed="true"] { border-color:var(--azul); background:var(--azul-claro); }
+  .passo-ml { display:flex; align-items:center; justify-content:space-between; background:var(--azul); color:#fff; border-radius:999px; padding:8px; margin-bottom:16px; }
+  .passo-ml button { width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.18); }
+  .passo-ml button:last-child { background:#fff; color:var(--azul); }
+  .passo-ml button svg { width:22px; height:22px; }
+  .passo-ml b { font-size:2rem; font-weight:800; }
+  .passo-ml b small { font-size:1.125rem; }
+  .folha label.hora { display:flex; align-items:center; justify-content:space-between; font-size:.875rem; font-weight:600; color:var(--tinta-2); margin-bottom:14px; }
+  .folha input[type=time] { font:inherit; font-weight:700; color:var(--tinta); background:var(--cartao-2); border:1.5px solid var(--linha); border-radius:12px; padding:8px 10px; }
+
+  /* ── recado ── */
+  .recado { position:fixed; left:50%; bottom:calc(92px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:60;
+    width:min(92vw, 440px); background:var(--tinta); color:var(--cartao); border-radius:16px; padding:12px 14px; display:flex; align-items:center; gap:12px;
+    font-size:.9375rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.25); animation:sobe .2s ease; }
+  .recado.ruim { background:var(--alerta); color:#fff; }
+  .recado span { flex:1; line-height:1.4; }
+  .recado button { color:var(--azul-claro); font-weight:800; padding:4px 6px; }
+  .recado.ruim button { color:#fff; }
+
+  /* ── abas ── */
+  .abas { position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--cartao); border-top:1px solid var(--linha);
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom)); }
+  .abas-in { max-width:480px; margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); }
+  .abas a { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 0; text-decoration:none;
+    font-size:.6875rem; font-weight:600; color:var(--apagado); border-radius:12px; }
+  .abas a svg { width:25px; height:25px; }
+  .abas a[aria-current="page"] { color:var(--azul-texto); font-weight:700; }
+
   @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
 </style>
+</head>
+<body>
 
-<div class="env">
-  <header>
-    <h1>BLU</h1>
-    <p class="sub">a companheira da sua garrafa</p>
-    <div class="palco">
-      <canvas id="agua" width="380" height="380"></canvas>
-      <canvas id="rosto" width="380" height="380"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gradGota" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5DB3FF"/><stop offset="1" stop-color="#1E6FE0"/></linearGradient>
+    <linearGradient id="gradAnel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1E6FE0"/><stop offset="1" stop-color="#5DB3FF"/></linearGradient>
+    <symbol id="i-gota" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.2c-.35 0-.66.18-.85.47C8.4 6.6 4.8 11.1 4.8 14.6a7.2 7.2 0 0 0 14.4 0c0-3.5-3.6-8-6.35-11.93A1 1 0 0 0 12 2.2z"/></symbol>
+    <symbol id="i-gota-l" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 3c2.9 4 6.4 8.2 6.4 11.6a6.4 6.4 0 0 1-12.8 0C5.6 11.2 9.1 7 12 3z"/></symbol>
+    <symbol id="i-bt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10-5 4V3l5 4L7 17"/></symbol>
+    <symbol id="i-casa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-casa-c" viewBox="0 0 24 24"><path fill="currentColor" d="M11.4 3.5a1 1 0 0 1 1.2 0l8 6.3a1 1 0 0 1 .4.8V19a2 2 0 0 1-2 2h-4v-6h-6v6H5a2 2 0 0 1-2-2v-8.4a1 1 0 0 1 .4-.8z"/></symbol>
+    <symbol id="i-barras" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M5 20V12M10 20V8M15 20V4M20 20v-6M3 20h18"/></symbol>
+    <symbol id="i-escudo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M12 3l7 3v5.5c0 4.4-3 7.9-7 9.5-4-1.6-7-5.1-7-9.5V6z"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="m12 8 1.3 2.6 2.9.4-2.1 2 .5 2.9L12 14.5l-2.6 1.4.5-2.9-2.1-2 2.9-.4z"/></symbol>
+    <symbol id="i-pessoa" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="10" r="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="1.9" d="M6.5 18.2c1.3-2 3.2-3 5.5-3s4.2 1 5.5 3"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-mais" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-menos" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M5 12h14"/></symbol>
+    <symbol id="i-seta" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-voltar" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-tendencia" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m3 17 6-6 4 4 8-8M15 7h6v6"/></symbol>
+    <symbol id="i-trofeu" viewBox="0 0 24 24"><path fill="#F2A900" d="M7 3h10v5a5 5 0 0 1-10 0z"/><path fill="none" stroke="#F2A900" stroke-width="1.8" d="M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10M17 5h3v1.5A3.5 3.5 0 0 1 16.5 10"/><path fill="#E09400" d="M10.5 12.5h3V16h-3z"/><path fill="#F2A900" d="M8 16h8l1 4H7z"/></symbol>
+    <symbol id="i-termo" viewBox="0 0 24 24"><path fill="none" stroke="#E5484D" stroke-width="1.9" d="M10 4.5a2 2 0 0 1 4 0v9.3a4 4 0 1 1-4 0z"/><circle cx="12" cy="17" r="1.8" fill="#E5484D"/><path stroke="#E5484D" stroke-width="1.9" stroke-linecap="round" d="M12 9v6"/></symbol>
+    <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M3.5 10h17M8 3v4M16 3v4"/><path fill="currentColor" d="M7.5 13h2v2h-2zM11 13h2v2h-2zM14.5 13h2v2h-2z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m7.5 12.3 3 3 6-6.3"/></symbol>
+    <symbol id="i-lixo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></symbol>
+    <symbol id="i-lapis" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.1"/></symbol>
+    <symbol id="i-balanca" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M8 9.5a5.5 5.5 0 0 1 8 0M12 9.5l1.5-2"/></symbol>
+    <symbol id="i-regua" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M9 3v18M15 3v18M9 7h3M9 11h2M9 15h3M15 7h-2M15 11h-1M15 15h-2"/></symbol>
+    <symbol id="i-corre" viewBox="0 0 24 24"><circle cx="14.5" cy="4.5" r="2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M6 11l3.5-3 3.5 1.5 2 3.5 3 1M9.5 8l-1 5 3.5 2.5-1 5M8.5 13 5 20"/></symbol>
+    <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></symbol>
+    <symbol id="i-engrenagem" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M12 2.8l1.6 2.3 2.7-.6.6 2.7 2.4 1.4-1 2.5 1 2.5-2.4 1.4-.6 2.7-2.7-.6L12 21.2l-1.6-2.3-2.7.6-.6-2.7-2.4-1.4 1-2.5-1-2.5 2.4-1.4.6-2.7 2.7.6z"/></symbol>
+    <symbol id="i-contraste" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="currentColor" d="M12 3a9 9 0 0 1 0 18z"/></symbol>
+    <symbol id="i-carinha" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M8.5 10v.5M15.5 10v.5M8.5 14.5c1.9 2 5.1 2 7 0"/></symbol>
+    <symbol id="i-filme" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="currentColor" d="M10 9.2v5.6l4.6-2.8z"/></symbol>
+    <symbol id="i-amigos" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.3" fill="#2F86EB"/><path fill="#2F86EB" d="M2.5 19c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6z"/><circle cx="16.5" cy="9.5" r="2.6" fill="#7DB8F5"/><path fill="#7DB8F5" d="M15.6 13.6c3 .1 5.2 1.9 5.9 5.4h-4.7c-.2-2.1-.6-3.8-1.2-5.4z"/></symbol>
+    <symbol id="i-copo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M5.5 4h13l-1.6 15.2a1 1 0 0 1-1 .8H8.1a1 1 0 0 1-1-.8z"/><path fill="currentColor" opacity=".35" d="M6.6 10h10.8l-1 9H7.6z"/></symbol>
+    <symbol id="i-copao" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M5 3h14l-1.4 17a1 1 0 0 1-1 .9H7.4a1 1 0 0 1-1-.9z"/><path fill="currentColor" opacity=".35" d="M5.9 8h12.2l-1.1 12H7z"/></symbol>
+    <symbol id="i-xicara" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4.5 8h12v5.5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM16.5 10H18a2.5 2.5 0 0 1 0 5h-1.6M4 21h14"/></symbol>
+    <symbol id="i-garrafa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M9.5 2.5h5v3l1.5 2v13a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-13l1.5-2z"/><path fill="currentColor" opacity=".35" d="M8.9 11h6.2v9.6H8.9z"/></symbol>
+    <symbol id="i-partilhar" viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="6" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="18.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path stroke="currentColor" stroke-width="1.9" d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1"/></symbol>
+    <symbol id="i-baixar" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M12 7v5l3 2"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ═══════════════ INÍCIO ═══════════════ -->
+  <section class="tela" id="t-inicio">
+    <header class="topo">
+      <div class="marca"><svg><use href="#i-gota-l"/></svg>BLU</div>
+      <button class="chip-bt" id="chip-bt" aria-label="Conexão com a garrafa">
+        <svg><use href="#i-bt"/></svg><i class="ponto" id="chip-ponto"></i><span id="chip-txt">Conectar</span>
+      </button>
+    </header>
+
+    <h1 class="ola" id="ola">Olá!</h1>
+    <p class="ola-sub" id="ola-sub">Primeiro gole do dia?</p>
+    <a class="ola-nome" href="#perfil" id="ola-nome" hidden>Conte seu peso e sua rotina pra calcular a meta</a>
+
+    <div class="anel-bloco">
+      <button class="anel" id="anel" aria-label="Ver e ajustar a meta">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="86" fill="none" stroke="var(--azul-claro)" stroke-width="16"/>
+          <circle id="anel-arco" cx="100" cy="100" r="86" fill="none" stroke="url(#gradAnel)" stroke-width="16" stroke-linecap="round"
+                  stroke-dasharray="540.35" stroke-dashoffset="540.35" style="transition:stroke-dashoffset .6s ease"/>
+        </svg>
+        <div class="anel-txt">
+          <b class="num" id="pct">0<small>%</small></b>
+          <span>da sua meta</span>
+          <span class="num" id="anel-l">0,0 L de 2,0 L</span>
+        </div>
+      </button>
+      <canvas id="gota" width="240" height="280" aria-hidden="true"></canvas>
     </div>
-    <div class="pilula" id="pilula"><span class="bolinha"></span><span id="pilula-txt">desconectada</span></div>
-  </header>
 
-  <div id="sem-bt" class="aviso ruim" hidden></div>
-  <div id="recado" class="aviso" hidden></div>
+    <a class="cartao linha-cartao faixa-azul" href="#historico" style="text-decoration:none">
+      <span class="ic"><svg><use href="#i-tendencia"/></svg></span>
+      <span class="txt"><b id="ritmo-t">Comece o dia com um copo</b><span id="ritmo-s">Sua meta hoje é 2,0 L.</span></span>
+      <svg class="seta"><use href="#i-seta"/></svg>
+    </a>
 
-  <nav role="tablist">
-    <button role="tab" aria-selected="true" data-aba="garrafa">Garrafa</button>
-    <button role="tab" aria-selected="false" data-aba="rostos">Rostos</button>
-    <button role="tab" aria-selected="false" data-aba="animacoes">Animações</button>
-  </nav>
+    <h2 class="secao">Seu dia</h2>
+    <div class="dia" id="dia"></div>
 
-  <!-- ───────────────────────── garrafa ───────────────────────── -->
-  <section class="aba" id="aba-garrafa">
+    <button class="botao-principal" id="b-registrar"><svg><use href="#i-mais"/></svg>Registrar água</button>
+
+    <div class="duo">
+      <a class="cartao mini" href="#desafios" style="text-decoration:none">
+        <svg class="ic"><use href="#i-trofeu"/></svg>
+        <span><span class="rot">Desafio da semana</span>
+          <span class="val num"><span id="sem-n">0/7</span><small>dias</small><svg class="ok" id="sem-ok" hidden><use href="#i-check"/></svg></span></span>
+      </a>
+      <button class="cartao mini" id="c-clima">
+        <svg class="ic"><use href="#i-termo"/></svg>
+        <span><span class="rot">Clima hoje</span>
+          <span class="val num" id="clima-v">—</span>
+          <span class="sub" id="clima-s">Toque para ver</span></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ESTATÍSTICAS ═══════════════ -->
+  <section class="tela" id="t-estatisticas">
+    <header class="cab esq">
+      <h1>Estatísticas</h1>
+      <a class="icone-bt azul" href="#historico" aria-label="Histórico"><svg><use href="#i-calendario"/></svg></a>
+    </header>
+    <div class="seg" id="seg-est">
+      <button aria-pressed="true" data-p="semana">Semana</button>
+      <button aria-pressed="false" data-p="mes">Mês</button>
+      <button aria-pressed="false" data-p="ano">Ano</button>
+    </div>
     <div class="cartao">
-      <div class="linha entre">
-        <div>
-          <h2 style="margin-bottom:2px">Conexão</h2>
-          <p class="nota" style="margin:0">Bluetooth LE — não precisa parear nas Configurações.</p>
-        </div>
+      <div class="grafico" id="g-est"></div>
+    </div>
+    <div class="stats">
+      <div class="cartao stat"><svg class="ic" style="color:var(--azul)"><use href="#i-gota-l"/></svg>
+        <span><span class="rot">Média diária</span><b class="num" id="st-media">—</b><span class="sub" id="st-media-s">nos dias com registro</span></span></div>
+      <div class="cartao stat"><svg class="ic"><use href="#i-trofeu"/></svg>
+        <span><span class="rot">Melhor dia</span><b class="num" id="st-melhor">—</b><span class="sub" id="st-melhor-s">&nbsp;</span></span></div>
+    </div>
+    <a class="cartao linha-cartao" href="#historico" style="text-decoration:none;margin-top:14px">
+      <span class="ic"><svg><use href="#i-tendencia"/></svg></span>
+      <span class="txt"><b id="st-banner-t">—</b><span id="st-banner-s">Ver histórico completo</span></span>
+      <svg class="seta"><use href="#i-seta"/></svg>
+    </a>
+  </section>
+
+  <!-- ═══════════════ HISTÓRICO ═══════════════ -->
+  <section class="tela" id="t-historico" data-pai="estatisticas">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Histórico</h1><span></span>
+    </header>
+    <div class="seg" id="seg-hist">
+      <button aria-pressed="true" data-p="diario">Diário</button>
+      <button aria-pressed="false" data-p="semanal">Semanal</button>
+      <button aria-pressed="false" data-p="mensal">Mensal</button>
+    </div>
+    <div class="cartao"><div class="grafico" id="g-hist"></div></div>
+    <div class="cartao consist">
+      <div class="roda"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--linha)" stroke-width="9"/>
+        <circle id="cons-arco" cx="40" cy="40" r="32" fill="none" stroke="var(--ok)" stroke-width="9" stroke-linecap="round" stroke-dasharray="201.06" stroke-dashoffset="201.06"/></svg>
+        <b class="num" id="cons-pct">0%</b></div>
+      <div><h2>Sua consistência</h2><p id="cons-txt">0 de 7 dias com a meta atingida</p></div>
+    </div>
+    <div class="cartao">
+      <h2>Registros</h2>
+      <p class="nota">Últimos 7 dias. Errou um registro? Apague aqui.</p>
+      <div id="registros"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ METAS ═══════════════ -->
+  <section class="tela" id="t-metas" data-pai="inicio">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Metas</h1><span></span>
+    </header>
+    <div class="meta-roda">
+      <button class="mm" id="meta-menos" aria-label="Diminuir 100 ml"><svg><use href="#i-menos"/></svg></button>
+      <div class="meta-anel">
+        <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--azul-claro)" stroke-width="10"/>
+          <circle id="meta-arco" cx="100" cy="100" r="88" fill="none" stroke="var(--azul)" stroke-width="10" stroke-linecap="round" stroke-dasharray="276 553" transform="rotate(-90 100 100)"/></svg>
+        <div class="dentro"><svg><use href="#i-gota-l"/></svg><b class="num" id="meta-v">2,0 L</b><span>por dia</span></div>
       </div>
-      <div class="linha" style="margin-top:14px">
-        <button class="acao" id="b-conectar">Procurar a garrafa</button>
-        <button class="acao vazio" id="b-desconectar" disabled>Desconectar</button>
+      <button class="mm" id="meta-mais" aria-label="Aumentar 100 ml"><svg><use href="#i-mais"/></svg></button>
+    </div>
+    <h2 class="secao" style="margin-top:0;font-size:1.0625rem">Com base em:</h2>
+    <div class="base">
+      <a href="#perfil" style="text-decoration:none"><button tabindex="-1"><svg><use href="#i-balanca"/></svg><span>Peso</span><b class="num" id="b-peso">—</b></button></a>
+      <a href="#perfil" style="text-decoration:none"><button tabindex="-1"><svg><use href="#i-regua"/></svg><span>Altura</span><b class="num" id="b-altura">—</b></button></a>
+      <a href="#perfil" style="text-decoration:none"><button tabindex="-1"><svg><use href="#i-corre"/></svg><span>Atividade</span><b id="b-ativ">—</b></button></a>
+      <button id="b-clima-meta"><svg style="color:var(--ouro)"><use href="#i-sol"/></svg><span>Clima</span><b class="num" id="b-clima">—</b></button>
+    </div>
+    <div class="cartao faixa-azul sugestao">
+      <svg><use href="#i-info"/></svg>
+      <div id="sug-txt">Preencha seu perfil para eu sugerir uma meta.</div>
+      <button class="link" id="b-usar-sug" hidden>Usar</button>
+    </div>
+    <p class="nota" style="font-size:.8125rem;color:var(--tinta-2);line-height:1.5;margin:0 4px 16px" id="sug-conta"></p>
+    <button class="botao-principal" id="b-salvar-meta">Salvar meta</button>
+  </section>
+
+  <!-- ═══════════════ DESAFIOS ═══════════════ -->
+  <section class="tela" id="t-desafios">
+    <header class="cab esq"><h1>Desafios</h1><span></span></header>
+    <div class="cartao desafio">
+      <div class="txt">
+        <h2>Desafio da semana</h2>
+        <p id="des-txt">Bata sua meta em 5 dias desta semana!</p>
+        <div class="progresso"><div class="trilho"><i id="des-barra"></i></div><b class="num" id="des-n">0 / 5</b></div>
+      </div>
+      <svg class="trofeu"><use href="#i-trofeu"/></svg>
+    </div>
+    <div class="secao-linha"><h2>Suas conquistas</h2><span class="link num" id="conq-n">0 de 4</span></div>
+    <div class="conquistas" id="conquistas"></div>
+    <p class="nota" id="conq-dica" style="font-size:.8125rem;color:var(--tinta-2);text-align:center;margin:14px 0 0;min-height:1.2em"></p>
+    <button class="cartao linha-cartao" id="b-convidar" style="margin-top:18px">
+      <span class="ic"><svg><use href="#i-amigos"/></svg></span>
+      <span class="txt"><b>Convide amigos</b><span>e compartilhe o desafio</span></span>
+      <svg class="seta"><use href="#i-seta"/></svg>
+    </button>
+  </section>
+
+  <!-- ═══════════════ MINHA BLU ═══════════════ -->
+  <section class="tela" id="t-minha">
+    <header class="cab esq"><h1>Minha BLU</h1><span></span></header>
+    <div class="disco-grande">
+      <canvas id="disco" width="480" height="480" aria-label="A carinha da garrafa"></canvas>
+      <a class="lapis" href="#carinha" aria-label="Criar carinha"><svg><use href="#i-lapis"/></svg></a>
+    </div>
+    <p class="estado-blu centro" id="estado-blu">Desconectada — mostrando a prévia aqui no celular.</p>
+    <p class="rotulo-c">Escolha ou crie uma expressão</p>
+    <div class="expressoes" id="expressoes"></div>
+    <a class="botao-sec" href="#carinha" style="text-decoration:none"><svg><use href="#i-mais"/></svg>Adicionar imagem</a>
+    <h2 class="secao" style="font-size:1.0625rem">Personalidade da BLU</h2>
+    <div class="cartao lista" style="padding:0">
+      <a class="item" href="#animacoes" style="text-decoration:none">
+        <svg class="ic"><use href="#i-filme"/></svg>
+        <span class="txt"><b>Animações dos humores</b><small>Quais carinhas, em que ordem, por quanto tempo</small></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+      <a class="item" href="#carinha" style="text-decoration:none">
+        <svg class="ic"><use href="#i-carinha"/></svg>
+        <span class="txt"><b>Suas carinhas na garrafa</b><small id="n-carinhas">Conecte para ver</small></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══════════════ NOVA CARINHA ═══════════════ -->
+  <section class="tela" id="t-carinha" data-pai="minha">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Carinhas</h1><span></span>
+    </header>
+    <div class="cartao">
+      <h2>Posições na garrafa</h2>
+      <p class="nota">Cabem 24 carinhas suas, além das 14 de fábrica. Livres: <b class="num" id="kb-livres">—</b> KB.</p>
+      <div class="slots" id="slots"></div>
+      <p class="nota" style="margin:12px 0 10px" id="slot-txt">Posição escolhida: 0 (vazia)</p>
+      <div class="botoes">
+        <button class="botao-borda" id="b-ver" disabled>Ver na garrafa</button>
+        <button class="botao-borda perigo" id="b-apagar" disabled>Apagar</button>
       </div>
     </div>
-
-    <div class="cartao" id="cartao-nivel">
-      <h2>Nível de água</h2>
-      <div class="linha" style="align-items:flex-start;gap:14px;margin-top:8px">
-        <div class="medida nivel-num" id="nivel-num">—</div>
-        <p class="origem" id="nivel-origem" style="flex:1;margin:0">Aguardando a garrafa.</p>
-      </div>
-      <div id="calibra" hidden>
-        <p class="nota" style="margin:14px 0 8px">Esvazie a garrafa e toque em “está vazia”; encha e toque em “está cheia”.</p>
-        <div class="linha">
-          <button class="acao vazio" id="b-vazia" disabled>Está vazia</button>
-          <button class="acao vazio" id="b-cheia" disabled>Está cheia</button>
-        </div>
+    <div class="cartao">
+      <h2>Nova carinha</h2>
+      <p class="nota">A prévia é exata: a tela da garrafa é redonda, 240×240, com 65 mil cores.</p>
+      <input type="file" id="arquivo" accept="image/*" hidden>
+      <button class="botao-sec" id="b-escolher"><svg><use href="#i-mais"/></svg>Escolher uma imagem</button>
+      <div id="editor" hidden>
+        <div class="previa" style="margin-top:14px"><div class="disco"><canvas id="previa" width="240" height="240"></canvas></div></div>
+        <p class="nota" style="margin:0 0 4px;text-align:center"><b class="num" id="tam">—</b> · <b class="num" id="cores">—</b> cores · cabe até 48 KB</p>
+        <div id="grande" class="aviso ruim" hidden>Arraste “cores” pra esquerda: menos cor, muito menos tamanho.</div>
+        <label class="campo" for="niveis">Cores por canal: <b class="num" id="niveis-n">6</b></label>
+        <input type="range" id="niveis" min="2" max="24" value="6">
+        <label class="troca">Limpar pontinhos soltos <span class="chave"><input type="checkbox" id="limpar" checked><i></i></span></label>
+        <label class="troca">Recortar em círculo <span class="chave"><input type="checkbox" id="redondo" checked><i></i></span></label>
+        <div class="barra-env" id="barra" hidden><i></i></div>
+        <button class="botao-principal" id="b-enviar" disabled style="margin-top:14px">Mandar pra garrafa</button>
+        <p class="nota" id="porque" style="margin:8px 0 0;text-align:center"></p>
+        <button class="botao-borda" id="b-h" style="width:100%;margin-top:10px"><svg width="18" height="18"><use href="#i-baixar"/></svg>Baixar arquivo .h</button>
       </div>
     </div>
+  </section>
 
+  <!-- ═══════════════ ANIMAÇÕES ═══════════════ -->
+  <section class="tela" id="t-animacoes" data-pai="minha">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Animações</h1><span></span>
+    </header>
+    <div class="cartao faixa-azul"><p class="nota" style="margin:0">Monte a sequência de cada humor: quais quadros, em que ordem, por quanto tempo. Fica salvo na garrafa mesmo desligada. A lista começa nas animações de fábrica — a garrafa não devolve as que já estão gravadas.</p></div>
+    <div id="editores"></div>
+    <button class="botao-borda" id="b-fabrica" disabled style="width:100%">Voltar tudo pro de fábrica</button>
+  </section>
+
+  <!-- ═══════════════ MAIS ═══════════════ -->
+  <section class="tela" id="t-mais">
+    <header class="cab esq"><h1>Configurações</h1><span></span></header>
+    <a class="cartao perfil" href="#perfil" style="text-decoration:none">
+      <span class="avatar" id="avatar">B</span>
+      <span class="txt"><b id="p-nome">Seu perfil</b><small>Editar perfil</small></span>
+      <svg class="seta"><use href="#i-seta"/></svg>
+    </a>
+    <div class="cartao lista" style="padding:0">
+      <a class="item" href="#conexao" style="text-decoration:none">
+        <svg class="ic"><use href="#i-bt"/></svg>
+        <span class="txt"><b>Conexão da BLU</b><small>Toque, memória e diagnóstico</small></span>
+        <span class="dir"><i class="ponto" id="m-ponto"></i><span id="m-con">Desconectada</span></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+      <a class="item" href="#metas" style="text-decoration:none">
+        <svg class="ic"><use href="#i-gota-l"/></svg>
+        <span class="txt"><b>Meta diária</b><small id="m-meta">2,0 L por dia</small></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+      <a class="item" href="#minha" style="text-decoration:none">
+        <svg class="ic"><use href="#i-carinha"/></svg>
+        <span class="txt"><b>Personalização da BLU</b><small>Escolha suas expressões</small></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+      <a class="item" href="#aparencia" style="text-decoration:none">
+        <svg class="ic"><use href="#i-contraste"/></svg>
+        <span class="txt"><b>Aparência e acessibilidade</b><small>Tema e tamanho do texto</small></span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+      <a class="item" href="#sobre" style="text-decoration:none">
+        <svg class="ic"><use href="#i-info"/></svg>
+        <span class="txt"><b>Sobre a BLU</b><small>Seus dados e versão</small></span>
+        <span class="dir">Versão 2.0</span>
+        <svg class="seta"><use href="#i-seta"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══════════════ PERFIL ═══════════════ -->
+  <section class="tela" id="t-perfil" data-pai="mais">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Perfil</h1><span></span>
+    </header>
+    <div class="cartao">
+      <label class="campo" for="f-nome" style="margin-top:0">Como você se chama?</label>
+      <input type="text" id="f-nome" autocomplete="given-name" maxlength="30">
+      <label class="campo" for="f-peso">Peso (kg)</label>
+      <input type="number" id="f-peso" inputmode="decimal" min="25" max="250" step="0.5">
+      <label class="campo" for="f-altura">Altura (cm)</label>
+      <input type="number" id="f-altura" inputmode="numeric" min="100" max="230" step="1">
+      <label class="campo">Atividade física</label>
+      <div class="seg" id="seg-ativ" style="margin:0">
+        <button aria-pressed="false" data-p="baixa">Baixa</button>
+        <button aria-pressed="true" data-p="moderada">Moderada</button>
+        <button aria-pressed="false" data-p="alta">Alta</button>
+      </div>
+      <p class="nota" style="margin:10px 0 0">Baixa: quase sem exercício. Moderada: 30–60 min na maioria dos dias. Alta: treino puxado ou trabalho físico.</p>
+    </div>
+    <button class="botao-principal" id="b-salvar-perfil">Salvar perfil</button>
+  </section>
+
+  <!-- ═══════════════ CONEXÃO ═══════════════ -->
+  <section class="tela" id="t-conexao" data-pai="mais">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Conexão da BLU</h1><span></span>
+    </header>
+    <div id="sem-bt" class="aviso ruim" hidden></div>
+    <div class="cartao">
+      <h2>Bluetooth</h2>
+      <p class="nota">Bluetooth LE — não precisa parear nas configurações do celular.</p>
+      <div class="botoes">
+        <button class="botao-sec" id="b-conectar"><svg><use href="#i-bt"/></svg>Procurar a garrafa</button>
+        <button class="botao-borda" id="b-desconectar" disabled>Desconectar</button>
+      </div>
+    </div>
     <div class="cartao">
       <h2>Humor agora</h2>
-      <p class="nota">A garrafa volta sozinha pro normal depois de alguns segundos, como faz quando o toque acontece de verdade.</p>
+      <p class="nota">A garrafa volta sozinha pro normal depois de alguns segundos.</p>
       <div class="humores" id="humores"></div>
     </div>
-
     <div class="cartao">
       <h2>Sensibilidade do toque</h2>
-      <p class="nota">O toque é capacitivo: a garrafa mede a capacitância do próprio corpo de aço. Encostar <b>abaixa</b> a leitura (uns 90 solto, uns 15 com a mão) — o que conta é o tamanho da queda.</p>
-
+      <p class="nota">O toque é capacitivo: encostar <b>abaixa</b> a leitura (uns 90 solto, uns 15 com a mão). O que conta é o tamanho da queda.</p>
       <div class="leituras">
-        <div><span class="rot">leitura</span><b class="medida" id="t-leitura">—</b></div>
-        <div><span class="rot">referência</span><b class="medida" id="t-base">—</b></div>
-        <div><span class="rot">desvio</span><b class="medida" id="t-desvio">—</b></div>
+        <div><span class="rot">leitura</span><b class="num" id="t-leitura">—</b></div>
+        <div><span class="rot">referência</span><b class="num" id="t-base">—</b></div>
+        <div><span class="rot">queda</span><b class="num" id="t-desvio">—</b></div>
       </div>
       <div class="regua"><i id="t-barra"></i><span id="t-corte"></span></div>
       <p class="nota" id="t-estado" style="margin:8px 0 0">Conecte pra ver ao vivo.</p>
-
-      <label class="campo" for="marg">Sensibilidade: <b class="medida" id="marg-n">automática</b></label>
+      <label class="campo" for="marg">Sensibilidade: <b class="num" id="marg-n">automática</b></label>
       <input type="range" id="marg" min="0" max="60" step="1" value="0">
-      <p class="nota" style="margin:2px 0 0">
-        Pra esquerda = mais sensível. <b>0 = automática</b> (um quinto da referência), que é o padrão.
-        A queda precisa passar da linha pra contar como toque.
-      </p>
-      <div class="linha" style="margin-top:10px">
-        <button class="acao" id="b-marg" disabled>Salvar sensibilidade</button>
-        <button class="acao vazio" id="b-recal" disabled>Recalibrar</button>
+      <p class="nota" style="margin:2px 0 10px">Pra esquerda = mais sensível. <b>0 = automática</b> (um quinto da referência).</p>
+      <div class="botoes">
+        <button class="botao-sec" id="b-marg" disabled>Salvar</button>
+        <button class="botao-borda" id="b-recal" disabled>Recalibrar</button>
       </div>
-      <p class="nota" style="margin:8px 0 0">Pra recalibrar, tire a mão da garrafa primeiro: ela mede o "solto".</p>
-
-      <label class="campo" for="thr">Tempo mínimo de contato: <b class="medida" id="thr-atual">—</b> ms</label>
-      <div class="linha" style="align-items:center;flex-wrap:nowrap">
-        <input type="number" id="thr" min="20" max="3000" step="10" placeholder="200" style="flex:1">
-        <button class="acao" id="b-thr" disabled>Salvar</button>
+      <p class="nota" style="margin:8px 0 0">Pra recalibrar, tire a mão da garrafa: ela mede o "solto".</p>
+      <label class="campo" for="thr">Tempo mínimo de contato: <b class="num" id="thr-atual">—</b> ms</label>
+      <div class="botoes" style="flex-wrap:nowrap">
+        <input type="number" id="thr" min="20" max="3000" step="10" placeholder="200" style="flex:2">
+        <button class="botao-sec" id="b-thr" disabled style="flex:1">Salvar</button>
       </div>
     </div>
-
+    <div class="cartao">
+      <h2>Memória da garrafa</h2>
+      <p class="nota">Se a garrafa responder <b>"não deu pra gravar na memória"</b>, a área das carinhas nunca foi formatada — então nada foi gravado e não há o que perder. Formatar leva uns 10 segundos e a garrafa reinicia no fim. Precisa do firmware v5.5.</p>
+      <div class="botoes">
+        <button class="botao-borda" id="b-formatar" disabled>Formatar a memória</button>
+        <button class="botao-borda perigo" id="b-zerar" disabled>Apagar tudo</button>
+      </div>
+    </div>
     <div class="cartao">
       <h2>O que aconteceu</h2>
       <div id="diario">Nada ainda.</div>
     </div>
   </section>
 
-  <!-- ───────────────────────── rostos ───────────────────────── -->
-  <section class="aba" id="aba-rostos" hidden>
+  <!-- ═══════════════ APARÊNCIA ═══════════════ -->
+  <section class="tela" id="t-aparencia" data-pai="mais">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Aparência</h1><span></span>
+    </header>
     <div class="cartao">
-      <h2>Carinhas na garrafa</h2>
-      <p class="nota">Cabem 24 carinhas suas, além das 14 de fábrica. Livres na garrafa: <b class="medida" id="kb-livres">—</b> KB.</p>
-      <div class="slots" id="slots"></div>
-      <p class="nota" style="margin:12px 0 0" id="slot-txt">Slot escolhido: 0 (vazio)</p>
-      <div class="linha" style="margin-top:10px">
-        <button class="acao vazio" id="b-ver" disabled>Ver na garrafa</button>
-        <button class="acao vazio" id="b-apagar" disabled>Apagar</button>
+      <h2>Tema</h2>
+      <div class="seg" id="seg-tema" style="margin:10px 0 0">
+        <button aria-pressed="true" data-p="auto">Automático</button>
+        <button aria-pressed="false" data-p="light">Claro</button>
+        <button aria-pressed="false" data-p="dark">Escuro</button>
       </div>
     </div>
-
     <div class="cartao">
-      <h2>Nova carinha</h2>
-      <p class="nota">A prévia abaixo é exata: a tela da garrafa é redonda, tem 240×240 e só 65 mil cores.</p>
-      <input type="file" id="arquivo" accept="image/*" hidden>
-      <button class="acao larga" id="b-escolher">Escolher uma imagem</button>
-
-      <div id="editor" hidden>
-        <div class="previa"><div class="disco"><canvas id="previa" width="240" height="240"></canvas></div></div>
-
-        <p class="nota" style="margin:0 0 4px">
-          <b class="medida" id="tam">—</b> · <b class="medida" id="cores">—</b> cores ·
-          cabe até <span class="medida">48</span> KB
-        </p>
-        <div id="grande" class="aviso ruim" hidden>
-          Arraste “cores” pra esquerda: menos cor, muito menos tamanho.
-        </div>
-
-        <label class="campo" for="niveis">Cores por canal: <b class="medida" id="niveis-n">6</b></label>
-        <input type="range" id="niveis" min="2" max="24" value="6">
-
-        <div class="troca"><input type="checkbox" id="limpar" checked><label for="limpar">Limpar pontinhos soltos</label></div>
-        <div class="troca"><input type="checkbox" id="redondo" checked><label for="redondo">Recortar em círculo</label></div>
-
-        <div class="barra" id="barra" hidden><i></i></div>
-        <div class="linha" style="margin-top:14px">
-          <button class="acao larga" id="b-enviar" disabled>Mandar pra garrafa</button>
-        </div>
-        <p class="nota" id="porque" style="margin:8px 0 0;text-align:center"></p>
-        <div class="linha" hidden>
-        </div>
-        <button class="acao vazio larga" id="b-h" style="margin-top:8px">Baixar arquivo .h</button>
-      </div>
-    </div>
-
-    <div class="cartao">
-      <h2>Começar de novo</h2>
-      <p class="nota">Apaga suas carinhas e devolve as animações de fábrica. As 14 originais nunca são apagadas — elas moram no firmware.</p>
-      <button class="acao vazio" id="b-zerar" disabled>Apagar tudo</button>
-    </div>
-
-    <div class="cartao">
-      <h2>Formatar a memória</h2>
-      <p class="nota">Se a garrafa responder <b>"não deu pra gravar na memória"</b> ao receber uma carinha, é porque a área de memória dela nunca foi formatada. Formate uma vez aqui — leva uns 10 segundos e a garrafa reinicia sozinha no fim.</p>
-      <p class="nota">Isso apaga as carinhas que você já tiver gravado. As 14 de fábrica continuam.</p>
-      <button class="acao vazio" id="b-formatar" disabled>Formatar a memória</button>
+      <label class="troca" style="min-height:auto">Texto maior <span class="chave"><input type="checkbox" id="f-grande"><i></i></span></label>
     </div>
   </section>
 
-  <!-- ───────────────────────── animações ───────────────────────── -->
-  <section class="aba" id="aba-animacoes" hidden>
+  <!-- ═══════════════ SOBRE ═══════════════ -->
+  <section class="tela" id="t-sobre" data-pai="mais">
+    <header class="cab">
+      <button class="icone-bt voltar" aria-label="Voltar"><svg><use href="#i-voltar"/></svg></button>
+      <h1>Sobre a BLU</h1><span></span>
+    </header>
     <div class="cartao">
-      <h2>Como funciona</h2>
-      <p class="nota" style="margin:0">Monte a sequência de cada humor: quais quadros, em que ordem, por quanto tempo. Fica salvo na garrafa mesmo desligada. A lista abaixo começa nas animações de fábrica — o firmware não devolve as que já estão gravadas.</p>
+      <h2>Seus dados</h2>
+      <p class="nota">Seus registros de água ficam <b>só neste navegador, neste celular</b> — não vão pra nenhum servidor. Por isso vale guardar uma cópia de vez em quando: se o navegador limpar os dados do site, eles somem.</p>
+      <div class="botoes">
+        <button class="botao-sec" id="b-exportar"><svg><use href="#i-baixar"/></svg>Guardar cópia</button>
+        <button class="botao-borda" id="b-importar">Restaurar cópia</button>
+      </div>
+      <input type="file" id="f-importar" accept="application/json,.json" hidden>
+      <button class="botao-borda perigo" id="b-limpar" style="width:100%;margin-top:10px">Apagar todos os registros</button>
     </div>
-    <div id="editores"></div>
-    <button class="acao vazio larga" id="b-fabrica" disabled>Voltar tudo pro de fábrica</button>
+    <div class="cartao">
+      <h2>Versão</h2>
+      <p class="nota" id="sobre-versao">App 2.0 · garrafa: desconectada</p>
+      <p class="nota">Clima: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. A localização é usada só pra buscar a temperatura e fica arredondada (~1 km).</p>
+    </div>
   </section>
 </div>
+
+<!-- abas -->
+<nav class="abas" aria-label="Seções">
+  <div class="abas-in">
+    <a href="#inicio" data-aba="inicio"><svg><use href="#i-casa"/></svg>Início</a>
+    <a href="#estatisticas" data-aba="estatisticas"><svg><use href="#i-barras"/></svg>Estatísticas</a>
+    <a href="#desafios" data-aba="desafios"><svg><use href="#i-escudo"/></svg>Desafios</a>
+    <a href="#minha" data-aba="minha"><svg><use href="#i-pessoa"/></svg>Minha BLU</a>
+    <a href="#mais" data-aba="mais"><svg><use href="#i-menu"/></svg>Mais</a>
+  </div>
+</nav>
+
+<!-- folha: registrar água -->
+<div class="veu" id="veu" hidden></div>
+<div class="folha" id="folha" role="dialog" aria-modal="true" aria-labelledby="folha-t" hidden>
+  <div class="puxador"></div>
+  <h2 id="folha-t">Registrar água</h2>
+  <div class="copos" id="copos"></div>
+  <div class="passo-ml">
+    <button id="ml-menos" aria-label="Menos 50 ml"><svg><use href="#i-menos"/></svg></button>
+    <b class="num" id="ml-v">250 <small>ml</small></b>
+    <button id="ml-mais" aria-label="Mais 50 ml"><svg><use href="#i-mais"/></svg></button>
+  </div>
+  <label class="hora">Que horas? <input type="time" id="ml-hora"></label>
+  <button class="botao-principal" id="b-confirmar">Registrar</button>
+</div>
+
+<div class="recado" id="recado" role="status" aria-live="polite" hidden><span id="recado-txt"></span><button id="recado-acao" hidden></button></div>
 
 <script>
 /* ═══════════════ dados das carinhas (vetorizadas dos Imagem*.h) ═══════════════ */
@@ -316,6 +849,82 @@ const CARINHAS = {"quadros":{"normal_1":[["RO","M71,93 C66,88 68,85 75,84 C80,84
 const COR = { BR:"#FFFFFF", RO:"#FF8FA8", RX:"#A855F7" };
 const HUMORES = ["normal","sede","toque","feliz","joinha"];
 const ROTULO  = ["Normal","Sede","Toque","Feliz","Joinha"];
+const H = { normal:0, sede:1, toque:2, feliz:3, joinha:4 };
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const MOVIMENTO = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ═══════════════ armazenamento local ═══════════════ */
+// Tudo envolvido em try/catch: em aba anonima, com dados bloqueados ou cota cheia o
+// localStorage lanca excecao, e o app tem que continuar funcionando (so nao lembra).
+const guardado = {
+  ler(k, padrao) { try { const v = localStorage.getItem("blu." + k); return v == null ? padrao : JSON.parse(v); } catch (e) { return padrao; } },
+  gravar(k, v)   { try { localStorage.setItem("blu." + k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+};
+
+let perfil    = Object.assign({ nome:"", peso:null, altura:null, atividade:"moderada" }, guardado.ler("perfil", {}));
+let meta      = guardado.ler("meta", 2000);
+let registros = guardado.ler("registros", []);   // [{ t: epoch ms, ml }]
+let clima     = guardado.ler("clima", null);     // { lat, lon, em, agora, max, maxOntem }
+let ajustes   = Object.assign({ tema:"auto", grande:false }, guardado.ler("ajustes", {}));
+if (!Array.isArray(registros)) registros = [];
+
+function salvarRegistros() {
+  if (!guardado.gravar("registros", registros)) recado("Não consegui guardar no celular (o navegador bloqueou). O registro vale só até fechar a página.", false);
+}
+
+/* ═══════════════ datas e contas ═══════════════ */
+const pad = n => String(n).padStart(2, "0");
+const chaveDia = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const hoje0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const somaDias = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const DIAS_CURTOS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function litros(ml, casas = 1) {
+  return (ml / 1000).toLocaleString("pt-BR", { minimumFractionDigits:casas, maximumFractionDigits:casas }) + " L";
+}
+function porDia() {
+  const m = new Map();
+  for (const r of registros) { const k = chaveDia(new Date(r.t)); m.set(k, (m.get(k) || 0) + r.ml); }
+  return m;
+}
+function inicioSemana(d) { const x = new Date(d); x.setHours(0,0,0,0); const w = (x.getDay() + 6) % 7; return somaDias(x, -w); }
+function maiorSequencia(m) {
+  const dias = [...m.entries()].filter(([, v]) => v >= meta).map(([k]) => k).sort();
+  let melhor = 0, atual = 0, ant = null;
+  for (const k of dias) {
+    const d = new Date(k + "T00:00:00");
+    atual = ant && chaveDia(somaDias(ant, 1)) === k ? atual + 1 : 1;
+    melhor = Math.max(melhor, atual); ant = d;
+  }
+  return melhor;
+}
+function diasMetaSemana(m) {
+  const ini = inicioSemana(new Date()); let n = 0;
+  for (let i = 0; i < 7; i++) if ((m.get(chaveDia(somaDias(ini, i))) || 0) >= meta) n++;
+  return n;
+}
+
+/* ═══════════════ meta sugerida ═══════════════ */
+// 35 ml por kg e a referencia mais usada. A altura entra para nao inflar a meta de quem
+// tem IMC alto: acima de 25, o excedente de peso conta so 40% (o "peso ajustado" usado
+// em nutricao — gordura guarda pouca agua). Atividade e calor somam por cima.
+function metaSugerida() {
+  if (!perfil.peso) return null;
+  let pesoRef = perfil.peso, ajustou = false;
+  if (perfil.altura) {
+    const m = perfil.altura / 100, limite = 25 * m * m;
+    if (perfil.peso > limite) { pesoRef = limite + 0.4 * (perfil.peso - limite); ajustou = true; }
+  }
+  const base = 35 * pesoRef;
+  const ativ = { baixa:0, moderada:350, alta:700 }[perfil.atividade] || 0;
+  const tmax = clima && clima.max != null ? clima.max : null;
+  const calor = tmax == null ? 0 : tmax >= 32 ? 500 : tmax >= 28 ? 250 : 0;
+  const total = Math.min(5000, Math.max(1200, Math.round((base + ativ + calor) / 100) * 100));
+  return { total, base:Math.round(base), ativ, calor, tmax, pesoRef:Math.round(pesoRef), ajustou };
+}
 
 /* ═══════════════ BLE ═══════════════ */
 const SERVICO = "12345678-1234-5678-1234-56789abcdef0";
@@ -328,162 +937,142 @@ const CH = {
 const LADO = 240, TOTAL = LADO * LADO, TETO = 49152, SLOTS = 24;
 
 let gatt = null, car = {}, conectado = false;
-const estado = { nivel:null, origem:0, slots:0, kbLivres:0, threshold:null, humor:0,
-                 leitura:null, base:0, margem:0 };
+const estado = { slots:0, kbLivres:0, threshold:null, humor:0, leitura:null, base:0, margem:0, temInfo:false };
 
-const $ = s => document.querySelector(s);
 const diario = [];
 function anotar(t) {
   diario.unshift(new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}) + "  " + t);
   if (diario.length > 60) diario.pop();
   $("#diario").textContent = diario.join("\n");
 }
-function recado(txt, bom) {
-  const el = $("#recado");
-  el.textContent = txt; el.className = "aviso " + (bom ? "bom" : "ruim"); el.hidden = false;
-  clearTimeout(recado.t); recado.t = setTimeout(() => { el.hidden = true; }, 6000);
+function recado(txt, bom = true, acao = null) {
+  const el = $("#recado"), b = $("#recado-acao");
+  $("#recado-txt").textContent = txt;
+  el.classList.toggle("ruim", bom === false);
+  b.hidden = !acao;
+  if (acao) { b.textContent = acao.rotulo; b.onclick = () => { el.hidden = true; acao.fazer(); }; }
+  el.hidden = false;
+  clearTimeout(recado.t); recado.t = setTimeout(() => { el.hidden = true; }, acao ? 6500 : 4500);
 }
 
 function pintarConexao() {
-  $("#pilula").classList.toggle("on", conectado);
-  $("#pilula-txt").textContent = conectado ? "conectada" : "desconectada";
+  $("#chip-ponto").classList.toggle("on", conectado);
+  $("#chip-txt").textContent = conectado ? "Conectada" : "Conectar";
+  $("#m-ponto").classList.toggle("on", conectado);
+  $("#m-con").textContent = conectado ? "Conectada" : "Desconectada";
   $("#b-desconectar").disabled = !conectado;
-  $("#b-conectar").disabled = conectado;
-  document.querySelectorAll("#humores button, #b-thr, #b-marg, #b-recal, #b-vazia, #b-cheia, #b-ver, #b-apagar, #b-zerar, #b-formatar, #b-fabrica, .b-salvar-seq")
-    .forEach(b => { b.disabled = !conectado; });
+  $("#b-conectar").disabled = conectado || !navigator.bluetooth;
+  $$("#humores button, #b-thr, #b-marg, #b-recal, #b-zerar, #b-formatar, #b-fabrica, .b-salvar-seq").forEach(b => { b.disabled = !conectado; });
   atualizarBotoesSlot();
   $("#b-enviar").disabled = !conectado || !rleAtual || rleAtual.length > TETO;
+  pintarMinha();
+  $("#sobre-versao").textContent = "App 2.0 · garrafa: " + (!conectado ? "desconectada" : (car.ctrl && car.dados ? "firmware v5 ou mais novo" : "firmware antigo (sem envio de carinha)"));
 }
 
 async function conectar() {
-  if (!navigator.bluetooth) { recado("Este navegador não tem Web Bluetooth."); return; }
+  if (!navigator.bluetooth) { recado("Este navegador não tem Bluetooth para páginas. Use o Chrome no Android.", false); return; }
   try {
-    const dev = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [SERVICO] }], optionalServices: [SERVICO]
-    });
+    const dev = await navigator.bluetooth.requestDevice({ filters:[{ services:[SERVICO] }], optionalServices:[SERVICO] });
     anotar("Conectando em " + (dev.name || "garrafa") + "…");
     dev.addEventListener("gattserverdisconnected", () => {
-      conectado = false; gatt = null; car = {}; pintarConexao(); anotar("A garrafa desconectou.");
+      conectado = false; gatt = null; car = {}; estado.temInfo = false; pintarConexao(); anotar("A garrafa desconectou.");
     });
     gatt = await dev.gatt.connect();
     const s = await gatt.getPrimaryService(SERVICO);
     for (const [k, u] of Object.entries(CH)) {
       try { car[k] = await s.getCharacteristic(u); } catch (e) { /* firmware antigo */ }
     }
-    for (const k of ["nivel","status","info"]) {
+    for (const k of ["status","info"]) {
       if (!car[k]) continue;
       await car[k].startNotifications();
       car[k].addEventListener("characteristicvaluechanged", e => receber(k, e.target.value));
     }
     conectado = true; pintarConexao();
     anotar("Conectada.");
-    // Firmware anterior ao v5 nao tem as caracteristicas de upload. Melhor dizer agora
-    // do que deixar o botao de enviar parecer quebrado depois.
+    recado("Garrafa conectada.");
     if (!car.ctrl || !car.dados) {
-      recado("Conectou, mas esta garrafa tem firmware antigo: da pra trocar o humor, nao da pra mandar carinha nova.");
+      recado("Conectou, mas o firmware é antigo: dá pra trocar o humor, não dá pra mandar carinha nova.", false);
       anotar("Firmware antigo: sem CTRL/DADOS.");
     }
     if (car.info) { try { receber("info", await car.info.readValue()); } catch (e) {} }
   } catch (e) {
     const m = (e && e.message) || "";
     if (m.includes("permissions policy") || m.includes("disallowed")) {
-      recado("Esta pagina esta hospedada num lugar que bloqueia Bluetooth. Abra o endereco do GitHub Pages (github.io), nao o do claude.ai.");
-      anotar("Bloqueado pela permissions policy do iframe.");
-      return;
+      recado("Esta página está num lugar que bloqueia Bluetooth. Abra pelo endereço github.io.", false); return;
     }
     if (e && e.name === "NotFoundError") anotar("Nenhuma garrafa escolhida.");
-    else { anotar("Falhou: " + (e && e.message)); recado("Não consegui conectar: " + (e && e.message)); }
+    else { anotar("Falhou: " + m); recado("Não consegui conectar: " + m, false); }
   }
 }
 
 function receber(qual, dv) {
-  if (qual === "nivel" && dv.byteLength >= 1) { estado.nivel = dv.getUint8(0); pintarNivel(); }
   if (qual === "info" && dv.byteLength >= 12) {
-    estado.origem = dv.getUint8(0);
-    estado.nivel = dv.getUint8(1);
     estado.slots = dv.getUint32(2, true);
     estado.kbLivres = dv.getUint16(6, true);
     estado.threshold = dv.getUint16(8, true);
     estado.humor = dv.getUint8(10);
-    // v5.3 acrescentou leitura/referencia/sensibilidade do toque no fim do pacote.
-    // Firmware mais antigo manda 12 bytes e simplesmente nao entra aqui.
+    estado.temInfo = true;
     if (dv.byteLength >= 18) {
       estado.leitura = dv.getUint16(12, true);
       estado.base    = dv.getUint16(14, true);
       estado.margem  = dv.getUint16(16, true);
       pintarToque();
     }
-    pintarNivel(); pintarSlots();
+    pintarSlots();
     $("#thr-atual").textContent = estado.threshold;
     $("#kb-livres").textContent = estado.kbLivres;
-    document.querySelectorAll("#humores button").forEach((b, i) =>
-      b.setAttribute("aria-pressed", String(i === estado.humor)));
+    $$("#humores button").forEach((b, i) => b.setAttribute("aria-pressed", String(i === estado.humor)));
+    pintarMinha();
   }
   if (qual === "status" && dv.byteLength >= 2) status(dv.getUint8(0), dv.getUint8(1));
 }
 
 const ERROS = { 1:"a garrafa ficou sem memória", 2:"o quadro passou do tamanho máximo",
   3:"os dados chegaram corrompidos", 4:"o quadro não cobre a tela inteira",
-  5:"não deu pra gravar na memória da garrafa — a área de memória dela nunca foi formatada. Use \"Formatar a memória\", no fim desta aba, e tente de novo",
-  6:"slot inválido", 7:"não há célula de carga ligada" };
+  5:"não deu pra gravar na memória da garrafa — ela nunca foi formatada. Use \"Formatar a memória\" em Mais › Conexão da BLU",
+  6:"posição inválida", 7:"não há célula de carga ligada" };
 
 let terminarEnvio = null;
 function status(codigo, dado) {
-  if (codigo === 1) { $("#barra").querySelector("i").style.width = dado + "%"; }
+  if (codigo === 1) $("#barra i").style.width = dado + "%";
   if (codigo === 2) {
-    anotar("Garrafa confirmou (slot " + dado + ").");
-    if (terminarEnvio) { terminarEnvio(true, "Carinha gravada no slot " + dado + "."); terminarEnvio = null; }
+    anotar("Garrafa confirmou (" + dado + ").");
+    if (dado === 254) recado("Memória formatada. A garrafa vai reiniciar — conecte de novo em seguida.");
+    else if (terminarEnvio) { terminarEnvio(true, "Carinha gravada na posição " + dado + "."); terminarEnvio = null; }
   }
   if (codigo === 3) {
     const m = ERROS[dado] || ("erro " + dado);
     anotar("Erro na garrafa: " + m);
     if (terminarEnvio) { terminarEnvio(false, m); terminarEnvio = null; }
-    else recado("Não deu certo: " + m);
+    else recado("Não deu certo: " + m, false);
   }
-  if (codigo === 4) recado(dado === 0 ? "Marquei este peso como garrafa vazia." : "Marquei este peso como garrafa cheia.", true);
 }
 
 const ctrl = bytes => car.ctrl && car.ctrl.writeValueWithResponse(new Uint8Array(bytes));
+async function mandarHumor(i, calado) {
+  if (!conectado || !car.rosto) { if (!calado) recado("Conecte na garrafa pra mudar a carinha dela.", false); return false; }
+  try { await car.rosto.writeValueWithResponse(new Uint8Array([i])); estado.humor = i; anotar("Pedi o rosto " + ROTULO[i] + "."); pintarMinha(); return true; }
+  catch (e) { if (!calado) recado("Não consegui: " + e.message, false); return false; }
+}
 
 function pintarToque() {
   const { leitura, base, margem } = estado;
   if (leitura == null) return;
-  // No ESP32 encostar FAZ A LEITURA CAIR (medido na garrafa: ~90 solto, ~15 com a mao).
-  // So a queda conta, igual ao firmware — por isso "queda" e nao modulo da diferenca.
+  // No ESP32 encostar FAZ A LEITURA CAIR (~90 solto, ~15 com a mao). So a queda conta.
   const queda = Math.max(0, base - leitura);
   const corte = margem || Math.max(2, Math.round(base / 5));
   $("#t-leitura").textContent = leitura;
   $("#t-base").textContent = base;
   $("#t-desvio").textContent = queda;
-  // A regua mostra a queda contra o corte, com o dobro do corte como fim de escala:
-  // assim a linha do corte cai sempre no meio e da pra ver "o quanto passou".
-  const escala = corte * 2 || 1;
-  $("#t-barra").style.width = Math.min(100, (queda / escala) * 100) + "%";
-  $("#t-corte").style.left = "50%";
+  $("#t-barra").style.width = Math.min(100, (queda / (corte * 2 || 1)) * 100) + "%";
   $(".regua").classList.toggle("passou", queda > corte);
   $("#t-estado").textContent = queda > corte
     ? "Encostado — a leitura caiu " + queda + ", mais que o corte de " + corte + "."
-    : "Solto — a leitura caiu " + queda + "; falta(m) " + (corte - queda + 1) + " pro corte de " + corte + ".";
+    : "Solto — caiu " + queda + "; faltam " + (corte - queda + 1) + " pro corte de " + corte + ".";
   if (document.activeElement !== $("#marg")) {
     $("#marg").value = margem;
     $("#marg-n").textContent = margem ? margem : "automática";
   }
-}
-
-function pintarNivel() {
-  $("#nivel-num").textContent = estado.nivel == null ? "—" : estado.nivel + "%";
-  const txt = {
-    0:"<b>Estimativa</b> pelo tempo desde o último toque. Não há sensor de nível ligado.",
-    1:"Medido pela <b>célula de carga</b>.",
-    2:"Tem célula de carga, mas <b>falta calibrar</b> — mostrando estimativa."
-  };
-  // origem 255 = a garrafa diz que nao tem medicao de agua. Nesse caso o cartao inteiro
-  // sai da tela: melhor nao ter o campo do que ter um numero que nao significa nada.
-  const semSensor = estado.origem === 255;
-  const cartao = $("#cartao-nivel");
-  if (cartao) cartao.hidden = semSensor;
-  $("#nivel-origem").innerHTML = estado.nivel == null ? "Aguardando a garrafa." : (txt[estado.origem] || "");
-  $("#calibra").hidden = true;
 }
 
 /* ═══════════════ imagem → RGB565 → RLE ═══════════════ */
@@ -494,7 +1083,6 @@ function posterizar(v, n) {
   const passo = 255 / (n - 1);
   return Math.min(255, Math.max(0, Math.round(Math.round(v / passo) * passo)));
 }
-
 function converter(imgData, niveis, limpar, redondo) {
   const d = imgData.data;
   let px = new Uint16Array(TOTAL);
@@ -513,66 +1101,41 @@ function converter(imgData, niveis, limpar, redondo) {
   }
   return px;
 }
-
 // maioria 3x3: pixel solto no meio de uma area de uma cor so vira aquela cor.
-// e o que mata o chuvisco de JPEG, que e justamente o que incha o RLE.
 function tirarPontinhos(px) {
-  const out = px.slice();
-  const viz = new Uint16Array(8);
-  for (let y = 1; y < LADO - 1; y++) {
-    for (let x = 1; x < LADO - 1; x++) {
-      let k = 0;
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-        if (dx || dy) viz[k++] = px[(y+dy)*LADO + (x+dx)];
-      }
-      let melhor = 0, quantas = 0;
-      for (let i = 0; i < 8; i++) {
-        let c = 0;
-        for (let j = 0; j < 8; j++) if (viz[j] === viz[i]) c++;
-        if (c > quantas) { quantas = c; melhor = viz[i]; }
-      }
-      if (quantas >= 5) out[y*LADO + x] = melhor;
-    }
+  const out = px.slice(), viz = new Uint16Array(8);
+  for (let y = 1; y < LADO - 1; y++) for (let x = 1; x < LADO - 1; x++) {
+    let k = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) viz[k++] = px[(y+dy)*LADO + (x+dx)];
+    let melhor = 0, quantas = 0;
+    for (let i = 0; i < 8; i++) { let c = 0; for (let j = 0; j < 8; j++) if (viz[j] === viz[i]) c++; if (c > quantas) { quantas = c; melhor = viz[i]; } }
+    if (quantas >= 5) out[y*LADO + x] = melhor;
   }
   return out;
 }
-
 function comprimirRLE(px) {
   const buf = new Uint8Array(px.length * 4);
   let p = 0, cor = px[0], n = 0;
   const despejar = () => { buf[p++] = n & 255; buf[p++] = n >> 8; buf[p++] = cor & 255; buf[p++] = cor >> 8; };
-  for (let i = 0; i < px.length; i++) {
-    if (px[i] === cor && n < 65535) n++;
-    else { despejar(); cor = px[i]; n = 1; }
-  }
+  for (let i = 0; i < px.length; i++) { if (px[i] === cor && n < 65535) n++; else { despejar(); cor = px[i]; n = 1; } }
   despejar();
   return buf.slice(0, p);
 }
-
 const TABELA_CRC = (() => {
   const t = new Uint32Array(256);
   for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c >>> 0; }
   return t;
 })();
-function crc32(b) {
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < b.length; i++) c = TABELA_CRC[(c ^ b[i]) & 255] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-
+function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = TABELA_CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
 function desenharPrevia(px) {
-  const cv = $("#previa"), cx = cv.getContext("2d");
-  const img = cx.createImageData(LADO, LADO);
+  const cx = $("#previa").getContext("2d"), img = cx.createImageData(LADO, LADO);
   for (let i = 0; i < TOTAL; i++) {
     const v = px[i];
-    img.data[i*4]   = ((v >> 11) & 0x1F) * 255 / 31;
-    img.data[i*4+1] = ((v >> 5)  & 0x3F) * 255 / 63;
-    img.data[i*4+2] = (v & 0x1F) * 255 / 31;
-    img.data[i*4+3] = 255;
+    img.data[i*4] = ((v >> 11) & 0x1F) * 255 / 31; img.data[i*4+1] = ((v >> 5) & 0x3F) * 255 / 63;
+    img.data[i*4+2] = (v & 0x1F) * 255 / 31; img.data[i*4+3] = 255;
   }
   cx.putImageData(img, 0, 0);
 }
-
 function reprocessar() {
   if (!imagemOriginal) return;
   const niveis = +$("#niveis").value;
@@ -582,24 +1145,18 @@ function reprocessar() {
   desenharPrevia(pixelsAtual);
   const cores = new Set();
   for (let i = 0; i < TOTAL && cores.size <= 4096; i++) cores.add(pixelsAtual[i]);
-  const kb = (rleAtual.length / 1024).toFixed(1);
   const cabe = rleAtual.length <= TETO;
-  $("#tam").textContent = kb + " KB";
+  $("#tam").textContent = (rleAtual.length / 1024).toFixed(1) + " KB";
   $("#tam").style.color = cabe ? "" : "var(--alerta)";
   $("#cores").textContent = cores.size > 4096 ? "4096+" : cores.size;
   $("#grande").hidden = cabe;
   $("#b-enviar").disabled = !conectado || !cabe;
-  $("#porque").textContent = !conectado ? "Conecte na garrafa pra liberar o envio."
-                           : !cabe      ? "Reduza as cores: o quadro nao cabe."
-                           : "";
+  $("#porque").textContent = !conectado ? "Conecte na garrafa (Mais › Conexão da BLU) pra liberar o envio." : !cabe ? "Reduza as cores: o quadro não cabe." : "";
 }
-
 function carregarImagem(file) {
-  const url = URL.createObjectURL(file);
-  const im = new Image();
+  const url = URL.createObjectURL(file), im = new Image();
   im.onload = () => {
-    const lado = Math.min(im.width, im.height);
-    const cv = document.createElement("canvas");
+    const lado = Math.min(im.width, im.height), cv = document.createElement("canvas");
     cv.width = cv.height = LADO;
     const cx = cv.getContext("2d", { willReadFrequently:true });
     cx.fillStyle = "#000"; cx.fillRect(0, 0, LADO, LADO);
@@ -609,37 +1166,30 @@ function carregarImagem(file) {
     $("#editor").hidden = false;
     reprocessar();
   };
-  im.onerror = () => recado("Não consegui abrir essa imagem.");
+  im.onerror = () => recado("Não consegui abrir essa imagem.", false);
   im.src = url;
 }
-
 async function enviarQuadro() {
-  // Antes isto era um "return" calado em tres situacoes diferentes, e o botao parecia
-  // simplesmente nao funcionar. Agora cada caso diz o que esta faltando.
-  if (!conectado)   { recado("Conecte na garrafa primeiro (aba Garrafa)."); return; }
-  if (!rleAtual)    { recado("Escolha uma imagem antes."); return; }
-  if (!car.ctrl || !car.dados) {
-    recado("Esta garrafa nao aceita carinha nova: o firmware dela e anterior ao v5. Grave o BLU_V5.ino e tente de novo.");
-    return;
-  }
+  if (!conectado)   { recado("Conecte na garrafa primeiro (Mais › Conexão da BLU).", false); return; }
+  if (!rleAtual)    { recado("Escolha uma imagem antes.", false); return; }
+  if (!car.ctrl || !car.dados) { recado("Esta garrafa não aceita carinha nova: o firmware é anterior ao v5.", false); return; }
   const slot = slotEscolhido, n = rleAtual.length;
   $("#b-enviar").disabled = true;
-  $("#barra").hidden = false; $("#barra").querySelector("i").style.width = "0%";
-  anotar("Enviando " + (n/1024).toFixed(1) + " KB pro slot " + slot + "…");
-
+  $("#barra").hidden = false; $("#barra i").style.width = "0%";
+  anotar("Enviando " + (n/1024).toFixed(1) + " KB pra posição " + slot + "…");
   const pronto = new Promise(res => { terminarEnvio = (ok, msg) => res({ ok, msg }); });
   try {
     await ctrl([0x01, slot, n & 255, (n>>8) & 255, (n>>16) & 255, (n>>24) & 255]);
-    const pedaco = 180;                     // multiplo de 4: nenhum par de RLE nasce partido
+    const pedaco = 180;   // multiplo de 4: nenhum par de RLE nasce partido
     for (let i = 0; i < n; i += pedaco) {
       await car.dados.writeValueWithResponse(rleAtual.slice(i, Math.min(i + pedaco, n)));
-      $("#barra").querySelector("i").style.width = Math.round(100 * Math.min(i + pedaco, n) / n) + "%";
+      $("#barra i").style.width = Math.round(100 * Math.min(i + pedaco, n) / n) + "%";
     }
     const c = crc32(rleAtual);
     await ctrl([0x02, c & 255, (c>>8) & 255, (c>>16) & 255, (c>>>24) & 255]);
   } catch (e) {
     terminarEnvio = null; $("#barra").hidden = true; $("#b-enviar").disabled = false;
-    recado("O envio falhou: " + (e && e.message)); anotar("Envio falhou: " + (e && e.message));
+    recado("O envio falhou: " + (e && e.message), false); anotar("Envio falhou: " + (e && e.message));
     return;
   }
   const limite = setTimeout(() => { if (terminarEnvio) { terminarEnvio(false, "a garrafa não confirmou"); terminarEnvio = null; } }, 45000);
@@ -648,110 +1198,32 @@ async function enviarQuadro() {
   $("#barra").hidden = true; $("#b-enviar").disabled = false;
   recado(r.ok ? r.msg : ("Não deu certo: " + r.msg), r.ok);
 }
-
 function gerarH(px) {
-  const linhas = ["// ImagemBLU.h — gerado pelo app da BLU",
-    "// 240x240 em RGB565, mesma organizacao dos Imagem*.h originais.",
-    "#ifndef IMAGEMBLU_H", "#define IMAGEMBLU_H", "", "#include <stdint.h>", "",
-    "const uint16_t ImagemBLU[] PROGMEM = {"];
+  const linhas = ["// ImagemBLU.h — gerado pelo app da BLU", "// 240x240 em RGB565, mesma organizacao dos Imagem*.h originais.",
+    "#ifndef IMAGEMBLU_H", "#define IMAGEMBLU_H", "", "#include <stdint.h>", "", "const uint16_t ImagemBLU[] PROGMEM = {"];
   for (let i = 0; i < px.length; i += 16) {
     const p = [];
-    for (let j = i; j < Math.min(i + 16, px.length); j++)
-      p.push("0x" + px[j].toString(16).toUpperCase().padStart(4, "0"));
+    for (let j = i; j < Math.min(i + 16, px.length); j++) p.push("0x" + px[j].toString(16).toUpperCase().padStart(4, "0"));
     linhas.push("    " + p.join(", ") + (i + 16 < px.length ? "," : ""));
   }
-  linhas.push("};", "", "const int ImagemBLU_WIDTH = 240;", "const int ImagemBLU_HEIGHT = 240;",
-    "#endif // IMAGEMBLU_H", "");
+  linhas.push("};", "", "const int ImagemBLU_WIDTH = 240;", "const int ImagemBLU_HEIGHT = 240;", "#endif // IMAGEMBLU_H", "");
   return linhas.join("\n");
-}
-
-/* ═══════════════ água + carinha ═══════════════ */
-let anguloGravidade = 0, agitacao = 0, tempo = 0;
-
-addEventListener("deviceorientation", e => {
-  if (e.gamma == null || e.beta == null) return;
-  anguloGravidade = Math.atan2(e.gamma, e.beta) * 180 / Math.PI;
-}, true);
-let ultimo = null;
-addEventListener("devicemotion", e => {
-  const a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
-  if (ultimo) {
-    const s = Math.hypot(a.x - ultimo.x, a.y - ultimo.y) + Math.abs(a.z - ultimo.z);
-    if (s > 1.2) agitacao = Math.min(1, agitacao + s / 18);
-  }
-  ultimo = { x:a.x, y:a.y, z:a.z };
-}, true);
-
-function onda(cx, topo, raio, t, amp, cor, escala, g) {
-  g.beginPath();
-  const esq = cx - raio * 1.6, dir = cx + raio * 1.6;
-  g.moveTo(esq, topo);
-  for (let x = esq; x <= dir; x += 4)
-    g.lineTo(x, topo + Math.sin(x/26 + t*2.4) * amp * escala + Math.cos(x/41 - t*1.3) * amp * .5 * escala);
-  g.lineTo(dir, topo + raio*3); g.lineTo(esq, topo + raio*3); g.closePath();
-  g.fillStyle = cor; g.fill();
-}
-
-function quadroAgua(dt) {
-  const cv = $("#agua"), g = cv.getContext("2d");
-  const L = cv.width, raio = L/2, cx = raio, cy = raio;
-  tempo += dt; agitacao *= 0.93;
-  g.clearRect(0, 0, L, L);
-  g.save();
-  g.beginPath(); g.arc(cx, cy, raio, 0, 7); g.clip();
-  g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--disco") || "#0D0F12";
-  g.fillRect(0, 0, L, L);
-  const alvo = (estado.nivel == null ? 62 : estado.nivel) / 100;
-  g.translate(cx, cy); g.rotate(-anguloGravidade * Math.PI / 180); g.translate(-cx, -cy);
-  const topo = cy + raio - 2*raio*alvo;
-  const amp = 3 + agitacao * 14;
-  onda(cx, topo,     raio, tempo,       amp, "rgba(94,157,178,.55)", 1,  g);
-  onda(cx, topo + 8, raio, tempo*1.4+2, amp, "rgba(94,157,178,.34)", .7, g);
-  g.restore();
-  g.beginPath(); g.arc(cx, cy, raio - 3, 0, 7);
-  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--borda");
-  g.lineWidth = 6; g.stroke();
-}
-
-let quadroI = 0, proximoQuadro = 0;
-function quadroRosto(agora) {
-  const humor = HUMORES[estado.humor] || "normal";
-  const lista = CARINHAS.sequencias[humor] || CARINHAS.sequencias.normal;
-  if (agora >= proximoQuadro) {
-    quadroI = (quadroI + 1) % lista.length;
-    proximoQuadro = agora + (humor === "normal" ? (quadroI === 0 ? 2000 : 420) : 333);
-  }
-  const formas = CARINHAS.quadros[lista[quadroI % lista.length]];
-  const cv = $("#rosto"), g = cv.getContext("2d");
-  g.clearRect(0, 0, cv.width, cv.height);
-  const f = cv.width / 150;
-  g.save(); g.scale(f, f);
-  for (const [c, d] of formas) { g.fillStyle = COR[c]; g.fill(new Path2D(d)); }
-  g.restore();
-}
-
-let anterior = 0;
-function laco(ts) {
-  const dt = anterior ? (ts - anterior) / 1000 : 0;
-  anterior = ts;
-  quadroAgua(Math.min(dt, .05));
-  quadroRosto(ts);
-  requestAnimationFrame(laco);
 }
 
 /* ═══════════════ slots ═══════════════ */
 let slotEscolhido = 0;
 function pintarSlots() {
-  document.querySelectorAll("#slots button").forEach((b, i) => {
+  $$("#slots button").forEach((b, i) => {
     const cheio = (estado.slots >> i) & 1;
     b.classList.toggle("cheio", !!cheio);
     b.textContent = cheio ? i : "·";
   });
   atualizarBotoesSlot();
 }
+function contarSlots() { let n = 0; for (let s = 0; s < SLOTS; s++) if ((estado.slots >> s) & 1) n++; return n; }
 function atualizarBotoesSlot() {
   const cheio = (estado.slots >> slotEscolhido) & 1;
-  $("#slot-txt").textContent = "Slot escolhido: " + slotEscolhido + (cheio ? " (vai substituir o que está lá)" : " (vazio)");
+  $("#slot-txt").textContent = "Posição escolhida: " + slotEscolhido + (cheio ? " (a nova substitui a que está lá)" : " (vazia)");
   $("#b-ver").disabled = !conectado || !cheio;
   $("#b-apagar").disabled = !conectado || !cheio;
 }
@@ -763,7 +1235,6 @@ const FABRICA = [
   [[0,333],[1,333],[2,333]], [[3,333],[4,333],[5,333]]
 ];
 const montagem = FABRICA.map(s => s.map(p => p.slice()));
-
 function nomeQuadro(q) {
   if (q >= 100) return "sua #" + (q - 100);
   if (q <= 2) return "feliz " + (q + 1);
@@ -772,23 +1243,20 @@ function nomeQuadro(q) {
   if (q <= 11) return "toque " + (q - 8);
   return q === 12 ? "normal piscando" : "normal olhos abertos";
 }
-
 function montarEditores() {
   $("#editores").innerHTML = "";
   ROTULO.forEach((nome, e) => {
     const c = document.createElement("div");
     c.className = "cartao";
-    c.innerHTML = "<h2>" + nome + "</h2><ol class='passos'></ol>" +
-      "<div class='linha' style='margin-top:10px'>" +
-      "<button class='acao vazio b-add'>Adicionar quadro</button>" +
-      "<button class='acao b-salvar-seq' disabled>Salvar na garrafa</button></div>";
+    c.innerHTML = "<h2>" + nome + "</h2><ol class='passos'></ol><div class='botoes' style='margin-top:10px'>" +
+      "<button class='botao-borda b-add'>Adicionar quadro</button><button class='botao-sec b-salvar-seq' disabled>Salvar na garrafa</button></div>";
     const ol = c.querySelector("ol");
     montagem[e].forEach(([q, ms], i) => {
       const li = document.createElement("li");
-      li.innerHTML = "<span class='nome'>" + nomeQuadro(q) + "</span><span class='ms'>" + ms + " ms</span>";
-      const mais = document.createElement("button"); mais.textContent = "+"; mais.title = "mais tempo";
+      li.innerHTML = "<span class='nome'>" + nomeQuadro(q) + "</span><span class='ms num'>" + ms + " ms</span>";
+      const mais = document.createElement("button"); mais.textContent = "+"; mais.setAttribute("aria-label", "mais tempo");
       mais.onclick = () => { montagem[e][i][1] = montagem[e][i][1] >= 3000 ? 250 : montagem[e][i][1] + 250; montarEditores(); };
-      const tira = document.createElement("button"); tira.textContent = "×"; tira.className = "tira"; tira.title = "tirar";
+      const tira = document.createElement("button"); tira.textContent = "×"; tira.className = "tira"; tira.setAttribute("aria-label", "tirar");
       tira.onclick = () => { if (montagem[e].length > 1) { montagem[e].splice(i, 1); montarEditores(); } };
       li.append(mais, tira); ol.append(li);
     });
@@ -798,57 +1266,606 @@ function montarEditores() {
   });
   pintarConexao();
 }
-
 function escolherQuadro(e) {
-  if (montagem[e].length >= 12) { recado("Uma animação cabe até 12 quadros."); return; }
+  if (montagem[e].length >= 12) { recado("Uma animação cabe até 12 quadros.", false); return; }
   const opcoes = [];
   for (let q = 0; q < 14; q++) opcoes.push(q);
   for (let s = 0; s < SLOTS; s++) if ((estado.slots >> s) & 1) opcoes.push(100 + s);
-  const txt = opcoes.map((q, i) => i + ") " + nomeQuadro(q)).join("\n");
-  const r = prompt("Qual quadro?\n\n" + txt, "0");
+  const r = prompt("Qual quadro?\n\n" + opcoes.map((q, i) => i + ") " + nomeQuadro(q)).join("\n"), "0");
   const i = parseInt(r, 10);
   if (isNaN(i) || i < 0 || i >= opcoes.length) return;
   montagem[e].push([opcoes[i], 333]);
   montarEditores();
 }
-
 async function salvarSequencia(e) {
-  const p = montagem[e];
-  const b = [0x05, e, p.length];
+  const p = montagem[e], b = [0x05, e, p.length];
   p.forEach(([q, ms]) => b.push(q, ms & 255, (ms >> 8) & 255));
-  try { await ctrl(b); recado("Animação de " + ROTULO[e] + " salva na garrafa.", true); }
-  catch (err) { recado("Não deu pra salvar: " + err.message); }
+  try { await ctrl(b); recado("Animação de " + ROTULO[e] + " salva na garrafa."); }
+  catch (err) { recado("Não deu pra salvar: " + err.message, false); }
 }
 
-/* ═══════════════ ligações da tela ═══════════════ */
+/* ═══════════════ carinhas animadas (mesmo desenho da garrafa) ═══════════════ */
+const anim = {};   // por humor: { i, prox }
+function quadroDoHumor(humor, agora) {
+  const lista = CARINHAS.sequencias[humor] || CARINHAS.sequencias.normal;
+  if (!MOVIMENTO) return lista[0];
+  const a = anim[humor] || (anim[humor] = { i:0, prox:0 });
+  if (agora >= a.prox) {
+    a.i = (a.i + 1) % lista.length;
+    a.prox = agora + (humor === "normal" ? (a.i === 0 ? 2200 : 380) : 340);
+  }
+  return lista[a.i % lista.length];
+}
+function desenharFace(g, nomeQuadro, escala) {
+  g.save(); g.scale(escala, escala);
+  for (const [c, d] of CARINHAS.quadros[nomeQuadro]) { g.fillStyle = COR[c]; g.fill(new Path2D(d)); }
+  g.restore();
+}
+function desenharGota(agora) {
+  const cv = $("#gota"), g = cv.getContext("2d");
+  g.clearRect(0, 0, cv.width, cv.height);
+  const bal = MOVIMENTO ? Math.sin(agora / 900) * 3 : 0;
+  g.save(); g.translate(0, bal);
+  g.beginPath();
+  g.moveTo(120, 8);
+  g.bezierCurveTo(146, 52, 212, 112, 212, 184);
+  g.arc(120, 184, 92, 0, Math.PI, false);
+  g.bezierCurveTo(28, 112, 94, 52, 120, 8);
+  const gr = g.createLinearGradient(0, 0, 0, 280);
+  gr.addColorStop(0, "#6CBBFF"); gr.addColorStop(1, "#1E6FE0");
+  g.fillStyle = gr; g.fill();
+  g.fillStyle = "rgba(255,255,255,.28)";
+  g.beginPath(); g.ellipse(78, 130, 12, 26, -0.45, 0, 7); g.fill();
+  const s = 1.0;
+  g.translate(120 - 75 * s, 196 - 82 * s);
+  desenharFace(g, quadroDoHumor(humorDoApp(), agora), s);
+  g.restore();
+}
+let previaHumor = 0;
+function desenharDisco(agora) {
+  const cv = $("#disco"), g = cv.getContext("2d"), L = cv.width;
+  g.clearRect(0, 0, L, L);
+  g.fillStyle = "#000"; g.beginPath(); g.arc(L/2, L/2, L/2, 0, 7); g.fill();
+  const humor = HUMORES[conectado && estado.temInfo ? estado.humor : previaHumor] || "normal";
+  desenharFace(g, quadroDoHumor(humor, agora), L / 150);
+}
+function montarExpressoes() {
+  ROTULO.forEach((nome, i) => {
+    const b = document.createElement("button");
+    b.className = "expr"; b.setAttribute("aria-pressed", String(i === 0));
+    b.innerHTML = "<span class='bola'><canvas width='120' height='120'></canvas></span><span>" + nome + "</span>";
+    const g = b.querySelector("canvas").getContext("2d");
+    g.fillStyle = "#000"; g.beginPath(); g.arc(60, 60, 60, 0, 7); g.fill();
+    desenharFace(g, CARINHAS.sequencias[HUMORES[i]][0], 120 / 150);
+    b.onclick = async () => {
+      previaHumor = i;
+      if (conectado) await mandarHumor(i);
+      pintarMinha();
+    };
+    $("#expressoes").append(b);
+  });
+}
+function pintarMinha() {
+  const atual = conectado && estado.temInfo ? estado.humor : previaHumor;
+  $$("#expressoes .expr").forEach((b, i) => b.setAttribute("aria-pressed", String(i === atual)));
+  $("#estado-blu").textContent = conectado
+    ? "Conectada — a garrafa está com a carinha " + ROTULO[estado.humor].toLowerCase() + "."
+    : "Desconectada — mostrando a prévia aqui no celular.";
+  $("#n-carinhas").textContent = conectado && estado.temInfo ? contarSlots() + " de 24 posições usadas · " + estado.kbLivres + " KB livres" : "Conecte para ver";
+}
+
+/* ═══════════════ humor do app (quando a garrafa não está ligada) ═══════════════ */
+let felizAte = 0;
+function humorDoApp() {
+  if (conectado && estado.temInfo) return HUMORES[estado.humor] || "normal";
+  if (Date.now() < felizAte) return "feliz";
+  const { total, esperado } = ritmoHoje();
+  if (total >= meta) return "joinha";
+  if (esperado - total > meta * 0.25) return "sede";
+  return "normal";
+}
+
+/* ═══════════════ início ═══════════════ */
+function ritmoHoje() {
+  const agora = new Date(), k = chaveDia(agora);
+  const total = registros.filter(r => chaveDia(new Date(r.t)) === k).reduce((a, r) => a + r.ml, 0);
+  // ritmo esperado: meta espalhada linearmente das 7h as 21h
+  const h = agora.getHours() + agora.getMinutes() / 60;
+  const esperado = meta * Math.min(1, Math.max(0, (h - 7) / 14));
+  return { total, esperado };
+}
+const MARCOS = [ { rot:"08h", fim:9.5 }, { rot:"11h", fim:12.5 }, { rot:"14h", fim:15.5 }, { rot:"17h", fim:18.5 }, { rot:"20h", fim:24 } ];
+function pintarInicio() {
+  const nome = (perfil.nome || "").trim();
+  $("#ola").textContent = nome ? "Olá, " + nome + "! 👋" : "Olá! 👋";
+  $("#ola-nome").hidden = !!perfil.peso;
+  const { total, esperado } = ritmoHoje();
+  const pct = meta ? Math.round(100 * total / meta) : 0;
+  $("#ola-sub").textContent = total >= meta ? "Meta batida hoje!" : total > 0 ? "Continue se hidratando hoje!" : "Primeiro gole do dia?";
+  $("#pct").innerHTML = pct + "<small>%</small>";
+  $("#anel-l").textContent = litros(total) + " de " + litros(meta);
+  $("#anel-arco").style.strokeDashoffset = 540.35 * (1 - Math.min(1, total / meta));
+  const falta = Math.max(0, meta - total);
+  let t, s;
+  if (total >= meta)        { t = "Meta batida!"; s = "Você bebeu " + litros(total) + " hoje."; }
+  else if (total === 0)     { t = "Comece o dia com um copo"; s = "Sua meta hoje é " + litros(meta) + "."; }
+  else if (esperado - total > meta * 0.1) { t = "Dá pra recuperar"; s = "Faltam " + litros(falta) + " para sua meta."; }
+  else                      { t = "Você está indo bem!"; s = "Faltam " + litros(falta) + " para sua meta."; }
+  $("#ritmo-t").textContent = t; $("#ritmo-s").textContent = s;
+
+  // seu dia: a meta dividida em 5 gotas, cada uma com o horario sugerido pra ter chegado nela.
+  // A gota enche quando o total do dia passa daquela quinta parte; a do horario de agora fica
+  // em contorno, pra mostrar qual seria a proxima no ritmo.
+  const agora = new Date(), hAgora = agora.getHours() + agora.getMinutes() / 60;
+  $("#dia").innerHTML = "";
+  MARCOS.forEach((m, k) => {
+    const cheia = total >= meta * (k + 1) / 5;
+    const inicioJanela = k === 0 ? 0 : MARCOS[k - 1].fim;
+    const classe = cheia ? "g-cheia" : (hAgora >= inicioJanela && hAgora < m.fim) ? "g-agora" : "g-vazia";
+    const el = document.createElement("div");
+    el.className = "marco";
+    el.innerHTML = "<svg viewBox='0 0 24 30'><path class='" + classe + "' d='M12 1.5c3.4 4.7 9 10.4 9 16.2a9 9 0 0 1-18 0C3 11.9 8.6 6.2 12 1.5z'/></svg><span>" + m.rot + "</span>";
+    el.setAttribute("aria-label", m.rot + ": " + (cheia ? "no ritmo" : classe === "g-agora" ? "agora" : "ainda não"));
+    $("#dia").append(el);
+  });
+
+  const m = porDia(), sem = diasMetaSemana(m);
+  $("#sem-n").textContent = sem + "/7";
+  $("#sem-ok").hidden = sem < 7;
+  pintarClima();
+}
+
+/* ═══════════════ registrar ═══════════════ */
+const COPOS = [ { ic:"i-xicara", ml:150, rot:"Xícara" }, { ic:"i-copo", ml:200, rot:"Copo" }, { ic:"i-copao", ml:300, rot:"Copo grande" }, { ic:"i-garrafa", ml:500, rot:"Garrafa" } ];
+let mlEscolhido = 250;
+function abrirFolha() {
+  mlEscolhido = guardado.ler("ultimoMl", 250);
+  const d = new Date(); $("#ml-hora").value = pad(d.getHours()) + ":" + pad(d.getMinutes());
+  pintarFolha();
+  $("#veu").hidden = false; $("#folha").hidden = false;
+  setTimeout(() => $("#b-confirmar").focus(), 50);
+}
+function fecharFolha() { $("#veu").hidden = true; $("#folha").hidden = true; }
+function pintarFolha() {
+  $("#ml-v").innerHTML = mlEscolhido + " <small>ml</small>";
+  $$("#copos .copo").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.ml === mlEscolhido)));
+}
+async function confirmarRegistro() {
+  const [hh, mm] = ($("#ml-hora").value || "").split(":").map(Number);
+  const d = new Date();
+  if (!isNaN(hh)) d.setHours(hh, isNaN(mm) ? 0 : mm, 0, 0);
+  if (d.getTime() > Date.now() + 60000) d.setDate(d.getDate() - 1);   // 23h50 registrado 00h10 = ontem
+  const antes = ritmoHoje().total;
+  const reg = { t:d.getTime(), ml:mlEscolhido };
+  registros.push(reg); registros.sort((a, b) => a.t - b.t);
+  salvarRegistros(); guardado.gravar("ultimoMl", mlEscolhido);
+  fecharFolha();
+  const depois = ritmoHoje().total;
+  const bateuAgora = antes < meta && depois >= meta;
+  felizAte = Date.now() + 6000;
+  if (conectado) mandarHumor(bateuAgora ? H.joinha : H.feliz, true);
+  pintarTudo();
+  recado(bateuAgora ? "Meta batida! +" + mlEscolhido + " ml" : "+" + mlEscolhido + " ml registrados", true,
+    { rotulo:"Desfazer", fazer:() => { registros = registros.filter(r => r !== reg); salvarRegistros(); pintarTudo(); } });
+}
+
+/* ═══════════════ clima (Open-Meteo, sem cadastro) ═══════════════ */
+let climaCarregando = false;
+function pintarClima() {
+  const v = $("#clima-v"), s = $("#clima-s");
+  if (climaCarregando) { v.textContent = "…"; s.textContent = "Buscando"; return; }
+  if (!clima || clima.agora == null) { v.textContent = "—"; s.textContent = clima && clima.erro ? clima.erro : "Toque para ver"; $("#b-clima").textContent = "—"; return; }
+  v.textContent = Math.round(clima.agora) + "°C";
+  const dif = clima.max != null && clima.maxOntem != null ? clima.max - clima.maxOntem : 0;
+  s.textContent = dif >= 1.5 ? "↑ Mais quente" : dif <= -1.5 ? "↓ Mais fresco" : "Como ontem";
+  $("#b-clima").textContent = Math.round(clima.max != null ? clima.max : clima.agora) + "°C";
+}
+async function buscarClima(pedirLocal) {
+  let lat = clima && clima.lat, lon = clima && clima.lon;
+  if ((lat == null || lon == null) && pedirLocal) {
+    if (!navigator.geolocation) { clima = { erro:"Sem localização" }; pintarClima(); return; }
+    climaCarregando = true; pintarClima();
+    try {
+      const pos = await new Promise((ok, falha) => navigator.geolocation.getCurrentPosition(ok, falha, { timeout:12000, maximumAge:36e5 }));
+      lat = Math.round(pos.coords.latitude * 100) / 100; lon = Math.round(pos.coords.longitude * 100) / 100;
+    } catch (e) {
+      climaCarregando = false; clima = { erro: e && e.code === 1 ? "Localização negada" : "Sem localização" };
+      guardado.gravar("clima", clima); pintarClima(); return;
+    }
+  }
+  if (lat == null || lon == null) return;
+  climaCarregando = true; pintarClima();
+  try {
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
+      "&current=temperature_2m&daily=temperature_2m_max&past_days=1&forecast_days=1&timezone=auto";
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const mx = j.daily && j.daily.temperature_2m_max || [];
+    clima = { lat, lon, em:Date.now(), agora:j.current.temperature_2m, max:mx[mx.length - 1], maxOntem:mx.length > 1 ? mx[0] : null };
+    guardado.gravar("clima", clima);
+  } catch (e) {
+    clima = Object.assign({}, clima, { lat, lon, erro:"Sem internet" });
+  }
+  climaCarregando = false; pintarClima(); pintarMetas();
+}
+
+/* ═══════════════ gráficos (SVG à mão) ═══════════════ */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, at, pai) { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (pai) pai.append(e); return e; }
+function escalaY(maxV) {
+  const passo = maxV > 3000 ? 1000 : 500;
+  const topo = Math.max(passo * 2, Math.ceil(maxV * 1.08 / passo) * passo);
+  const ticks = []; for (let v = 0; v <= topo; v += topo > 3000 ? 1000 : passo) ticks.push(v);
+  return { topo, ticks };
+}
+function rotuloTick(v) { return v === 0 ? "0" : (v / 1000).toLocaleString("pt-BR") + " L"; }
+function dicaEm(caixa, x, y, txt) {
+  let d = caixa.querySelector(".dica");
+  if (!d) { d = document.createElement("div"); d.className = "dica"; caixa.append(d); }
+  d.textContent = txt; d.style.left = x + "px"; d.style.top = y + "px"; d.hidden = false;
+  clearTimeout(dicaEm.t); dicaEm.t = setTimeout(() => { d.hidden = true; }, 2600);
+}
+// barras: dados = [{ rot, v (ml ou null), dica, mostrarRot }]
+function graficoBarras(caixa, dados, refMl) {
+  caixa.innerHTML = "";
+  if (!dados.some(d => d.v)) { caixa.innerHTML = "<div class='vazio-graf'>Registre o primeiro gole e o gráfico começa aqui.</div>"; return; }
+  const W = 330, Hh = 190, mE = 36, mD = 8, mT = 14, mB = 24;
+  const maxV = Math.max(refMl || 0, ...dados.map(d => d.v || 0));
+  const { topo, ticks } = escalaY(maxV);
+  const svg = el("svg", { viewBox:"0 0 " + W + " " + Hh, role:"img", "aria-label":"Consumo de água" }, caixa);
+  const y = v => mT + (Hh - mT - mB) * (1 - v / topo);
+  ticks.forEach(t => { el("line", { x1:mE, x2:W - mD, y1:y(t), y2:y(t), class:"grade" }, svg); el("text", { x:mE - 6, y:y(t) + 4, "text-anchor":"end", class:"eixo" }, svg).textContent = rotuloTick(t); });
+  const banda = (W - mE - mD) / dados.length, larg = Math.min(24, banda * 0.62);
+  dados.forEach((d, i) => {
+    const cx = mE + banda * (i + 0.5);
+    if (d.mostrarRot !== false) el("text", { x:cx, y:Hh - 6, "text-anchor":"middle", class:"eixo" }, svg).textContent = d.rot;
+    if (d.v == null) return;
+    const v = Math.max(d.v, 0), yt = y(v), yb = y(0), r = Math.min(4, (yb - yt) / 2, larg / 2), x0 = cx - larg / 2;
+    if (v > 0) el("path", { class:"barra", d:"M" + x0 + "," + yb + "V" + (yt + r) + "Q" + x0 + "," + yt + " " + (x0 + r) + "," + yt + "H" + (x0 + larg - r) + "Q" + (x0 + larg) + "," + yt + " " + (x0 + larg) + "," + (yt + r) + "V" + yb + "Z" }, svg);
+    const alvo = el("rect", { x:mE + banda * i, y:mT, width:banda, height:Hh - mT - mB, class:"alvo", tabindex:0, "aria-label":d.dica }, svg);
+    const mostrar = () => { const k = caixa.clientWidth / W; dicaEm(caixa, cx * k, yt * k, d.dica); };
+    alvo.addEventListener("click", mostrar); alvo.addEventListener("focus", mostrar);
+  });
+  if (refMl) {
+    el("line", { x1:mE, x2:W - mD, y1:y(refMl), y2:y(refMl), class:"ref" }, svg);
+    el("text", { x:W - mD, y:y(refMl) - 5, "text-anchor":"end", class:"ref-txt" }, svg).textContent = "Meta " + litros(refMl);
+  }
+}
+// linha: dados = [{ rot, v, dica }]
+function graficoLinha(caixa, dados) {
+  caixa.innerHTML = "";
+  if (!dados.some(d => d.v)) { caixa.innerHTML = "<div class='vazio-graf'>Ainda não há registros nesse período.</div>"; return; }
+  const W = 330, Hh = 190, mE = 36, mD = 14, mT = 30, mB = 24;
+  const maxV = Math.max(meta, ...dados.map(d => d.v || 0));
+  const { topo, ticks } = escalaY(maxV);
+  const svg = el("svg", { viewBox:"0 0 " + W + " " + Hh, role:"img", "aria-label":"Histórico de consumo" }, caixa);
+  const y = v => mT + (Hh - mT - mB) * (1 - v / topo);
+  const x = i => mE + (W - mE - mD) * (dados.length === 1 ? .5 : i / (dados.length - 1));
+  ticks.forEach(t => { el("line", { x1:mE, x2:W - mD, y1:y(t), y2:y(t), class:"grade" }, svg); el("text", { x:mE - 6, y:y(t) + 4, "text-anchor":"end", class:"eixo" }, svg).textContent = rotuloTick(t); });
+  dados.forEach((d, i) => el("text", { x:x(i), y:Hh - 6, "text-anchor":"middle", class:"eixo" }, svg).textContent = d.rot);
+  const pts = dados.map((d, i) => [x(i), y(d.v || 0)]);
+  el("path", { class:"area", d:"M" + pts.map(p => p.join(",")).join("L") + "L" + x(dados.length - 1) + "," + y(0) + "L" + x(0) + "," + y(0) + "Z" }, svg);
+  el("path", { class:"linha-serie", d:"M" + pts.map(p => p.join(",")).join("L") }, svg);
+  let iMax = 0; dados.forEach((d, i) => { if ((d.v || 0) > (dados[iMax].v || 0)) iMax = i; });
+  pts.forEach(([px, py], i) => {
+    el("circle", { cx:px, cy:py, r:4, class:"pto" }, svg);
+    const banda = (W - mE - mD) / Math.max(1, dados.length - 1);
+    const alvo = el("rect", { x:px - banda / 2, y:mT - 20, width:banda, height:Hh - mT - mB + 20, class:"alvo", tabindex:0, "aria-label":dados[i].dica }, svg);
+    const mostrar = () => { const k = caixa.clientWidth / W; dicaEm(caixa, px * k, py * k - 6, dados[i].dica); };
+    alvo.addEventListener("click", mostrar); alvo.addEventListener("focus", mostrar);
+  });
+  if (dados[iMax].v) {
+    const [px, py] = pts[iMax], txt = litros(dados[iMax].v), w = txt.length * 6.6 + 14;
+    const g = el("g", { class:"pilula-v" }, svg);
+    const xx = Math.min(W - mD - w, Math.max(mE, px - w / 2));
+    el("rect", { x:xx, y:py - 28, width:w, height:20, rx:10 }, g);
+    el("text", { x:xx + w / 2, y:py - 14, "text-anchor":"middle" }, g).textContent = txt;
+  }
+}
+
+/* ═══════════════ estatísticas ═══════════════ */
+let periodoEst = "semana", periodoHist = "diario";
+function pintarEstatisticas() {
+  const m = porDia(), hoje = hoje0(), dados = [];
+  let dias = [];   // chaves dos dias ja vividos no periodo
+  if (periodoEst === "semana") {
+    const ini = inicioSemana(hoje);
+    for (let i = 0; i < 7; i++) {
+      const d = somaDias(ini, i), k = chaveDia(d), futuro = d > hoje;
+      if (!futuro) dias.push(k);
+      dados.push({ rot:DIAS_CURTOS[d.getDay()], v:futuro ? null : (m.get(k) || 0), dica:DIAS_CURTOS[d.getDay()] + " " + d.getDate() + ": " + litros(m.get(k) || 0) });
+    }
+  } else if (periodoEst === "mes") {
+    const n = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+    for (let i = 1; i <= n; i++) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth(), i), k = chaveDia(d), futuro = d > hoje;
+      if (!futuro) dias.push(k);
+      dados.push({ rot:String(i), mostrarRot:i === 1 || i % 5 === 0, v:futuro ? null : (m.get(k) || 0), dica:i + "/" + (d.getMonth() + 1) + ": " + litros(m.get(k) || 0) });
+    }
+  } else {
+    for (let mes = 0; mes < 12; mes++) {
+      const primeiro = new Date(hoje.getFullYear(), mes, 1);
+      if (primeiro > hoje) { dados.push({ rot:MESES[mes][0], v:null, dica:MESES[mes] }); continue; }
+      const ult = Math.min(new Date(hoje.getFullYear(), mes + 1, 0).getDate(), mes === hoje.getMonth() ? hoje.getDate() : 99);
+      let soma = 0, com = 0;
+      for (let i = 1; i <= ult; i++) { const k = chaveDia(new Date(hoje.getFullYear(), mes, i)); dias.push(k); const v = m.get(k) || 0; soma += v; if (v) com++; }
+      const media = com ? soma / com : 0;
+      dados.push({ rot:MESES[mes][0], v:media, dica:MESES[mes] + ": média de " + litros(media) + " por dia registrado" });
+    }
+  }
+  graficoBarras($("#g-est"), dados, meta);
+  const vals = dias.map(k => m.get(k) || 0), comReg = vals.filter(v => v > 0);
+  $("#st-media").textContent = comReg.length ? litros(comReg.reduce((a, v) => a + v, 0) / comReg.length) : "—";
+  let melhorK = null; dias.forEach(k => { if ((m.get(k) || 0) > (melhorK ? m.get(melhorK) : 0)) melhorK = k; });
+  $("#st-melhor").textContent = melhorK ? litros(m.get(melhorK)) : "—";
+  $("#st-melhor-s").textContent = melhorK ? new Date(melhorK + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"short", day:"numeric", month:"short" }) : " ";
+  const bateu = vals.filter(v => v >= meta).length;
+  $("#st-banner-t").textContent = periodoEst === "semana" ? "Você atingiu sua meta " + bateu + " de 7 dias esta semana"
+    : periodoEst === "mes" ? "Meta atingida em " + bateu + " de " + dias.length + " dias neste mês"
+    : bateu + " dias com a meta atingida em " + hoje.getFullYear();
+}
+function pintarHistorico() {
+  const m = porDia(), hoje = hoje0(), dados = [];
+  if (periodoHist === "diario") {
+    for (let i = 6; i >= 0; i--) { const d = somaDias(hoje, -i), k = chaveDia(d); dados.push({ rot:DIAS_CURTOS[d.getDay()], v:m.get(k) || 0, dica:DIAS_CURTOS[d.getDay()] + " " + d.getDate() + ": " + litros(m.get(k) || 0) }); }
+  } else if (periodoHist === "semanal") {
+    const ini = inicioSemana(hoje);
+    for (let s = 7; s >= 0; s--) {
+      const a = somaDias(ini, -7 * s); let soma = 0, n = 0;
+      for (let i = 0; i < 7; i++) { const d = somaDias(a, i); if (d > hoje) break; soma += m.get(chaveDia(d)) || 0; n++; }
+      dados.push({ rot:a.getDate() + "/" + (a.getMonth() + 1), v:n ? soma / n : 0, dica:"Semana de " + a.getDate() + "/" + (a.getMonth() + 1) + ": " + litros(n ? soma / n : 0) + " por dia" });
+    }
+  } else {
+    for (let s = 5; s >= 0; s--) {
+      const a = new Date(hoje.getFullYear(), hoje.getMonth() - s, 1);
+      const ult = s === 0 ? hoje.getDate() : new Date(a.getFullYear(), a.getMonth() + 1, 0).getDate();
+      let soma = 0; for (let i = 1; i <= ult; i++) soma += m.get(chaveDia(new Date(a.getFullYear(), a.getMonth(), i))) || 0;
+      dados.push({ rot:MESES[a.getMonth()], v:soma / ult, dica:MESES[a.getMonth()] + ": " + litros(soma / ult) + " por dia" });
+    }
+  }
+  graficoLinha($("#g-hist"), dados);
+  let bateu = 0; for (let i = 0; i < 7; i++) if ((m.get(chaveDia(somaDias(hoje, -i))) || 0) >= meta) bateu++;
+  const pct = Math.round(100 * bateu / 7);
+  $("#cons-pct").textContent = pct + "%";
+  $("#cons-arco").style.strokeDashoffset = 201.06 * (1 - bateu / 7);
+  $("#cons-txt").textContent = bateu + " de 7 dias com a meta atingida";
+
+  const caixa = $("#registros"); caixa.innerHTML = "";
+  const desde = somaDias(hoje, -6).getTime();
+  const ultimos = registros.filter(r => r.t >= desde).sort((a, b) => b.t - a.t);
+  if (!ultimos.length) { caixa.innerHTML = "<p class='nota' style='margin:8px 0 0'>Nenhum registro nos últimos 7 dias.</p>"; return; }
+  let diaAtual = null, grupo = null;
+  for (const r of ultimos) {
+    const d = new Date(r.t), k = chaveDia(d);
+    if (k !== diaAtual) {
+      // hoje aberto; os outros dias dobrados, senao a lista vira um rolo de 50 linhas
+      diaAtual = k; grupo = document.createElement("details"); grupo.className = "dia-reg";
+      grupo.open = k === chaveDia(hoje);
+      const rot = k === chaveDia(hoje) ? "Hoje" : k === chaveDia(somaDias(hoje, -1)) ? "Ontem" : d.toLocaleDateString("pt-BR", { weekday:"long", day:"numeric", month:"short" });
+      const bateu = (m.get(k) || 0) >= meta;
+      grupo.innerHTML = "<summary><span>" + rot + (bateu ? " <svg class='ok-dia'><use href='#i-check'/></svg>" : "") + "</span><span class='num'>" + litros(m.get(k) || 0) + "</span></summary>";
+      caixa.append(grupo);
+    }
+    const linha = document.createElement("div"); linha.className = "reg";
+    linha.innerHTML = "<svg class='g'><use href='#i-gota'/></svg><span class='ml num'>" + r.ml + " ml</span><span class='hora num'>" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + "</span>";
+    const b = document.createElement("button"); b.setAttribute("aria-label", "Apagar registro de " + r.ml + " ml"); b.innerHTML = "<svg><use href='#i-lixo'/></svg>";
+    b.onclick = () => {
+      registros = registros.filter(x => x !== r); salvarRegistros(); pintarTudo();
+      recado("Registro apagado.", true, { rotulo:"Desfazer", fazer:() => { registros.push(r); registros.sort((a, c) => a.t - c.t); salvarRegistros(); pintarTudo(); } });
+    };
+    linha.append(b); grupo.append(linha);
+  }
+}
+
+/* ═══════════════ metas ═══════════════ */
+let metaRascunho = meta;
+function pintarMetas() {
+  $("#meta-v").textContent = litros(metaRascunho);
+  // arco: a meta numa escala de 0 a 4 L, so pra dar a nocao de "mais" ou "menos"
+  $("#meta-arco").setAttribute("stroke-dasharray", (552.9 * Math.min(1, metaRascunho / 4000)).toFixed(1) + " 553");
+  $("#b-peso").textContent = perfil.peso ? String(perfil.peso).replace(".", ",") + " kg" : "—";
+  $("#b-altura").textContent = perfil.altura ? (perfil.altura / 100).toLocaleString("pt-BR", { minimumFractionDigits:2 }) + " m" : "—";
+  $("#b-ativ").textContent = { baixa:"Baixa", moderada:"Moderada", alta:"Alta" }[perfil.atividade] || "—";
+  const s = metaSugerida();
+  if (!s) {
+    $("#sug-txt").innerHTML = "Preencha seu <a href='#perfil'>perfil</a> (peso, altura, atividade) pra eu sugerir uma meta.";
+    $("#b-usar-sug").hidden = true; $("#sug-conta").textContent = ""; return;
+  }
+  $("#sug-txt").innerHTML = "Sugestão pra você: <b class='num'>" + litros(s.total) + "</b> por dia." + (s.total === metaRascunho ? " É a sua meta." : "");
+  $("#b-usar-sug").hidden = s.total === metaRascunho;
+  const partes = ["35 ml × " + s.pesoRef + " kg" + (s.ajustou ? " (peso ajustado pela altura)" : "") + " = " + s.base + " ml"];
+  if (s.ativ) partes.push("+ " + s.ativ + " ml de atividade");
+  if (s.calor) partes.push("+ " + s.calor + " ml pelo calor de " + Math.round(s.tmax) + "°C");
+  else if (s.tmax == null) partes.push("(toque em Clima pra incluir a temperatura)");
+  $("#sug-conta").textContent = "Como calculei: " + partes.join(" ") + ". É uma referência geral, não orientação médica.";
+}
+
+/* ═══════════════ desafios ═══════════════ */
+const CONQUISTAS = [
+  { nome:"Primeiro gole", dica:"Faça o primeiro registro.", cor:"#2F86EB", ok:(m) => registros.length > 0,
+    svg:"<svg viewBox='0 0 24 24'><path fill='#2F86EB' d='M12 2.5c3.3 4.6 7.5 9.4 7.5 13a7.5 7.5 0 0 1-15 0c0-3.6 4.2-8.4 7.5-13z'/><ellipse cx='9.3' cy='14' rx='1.5' ry='2.6' fill='#fff' opacity='.55'/></svg>" },
+  { nome:"3 dias seguidos", dica:"Bata a meta 3 dias seguidos.", ok:(m, seq) => seq >= 3,
+    svg:"<svg viewBox='0 0 24 24'><path fill='#F5B301' d='m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/></svg>" },
+  { nome:"7 dias seguidos", dica:"Bata a meta 7 dias seguidos.", ok:(m, seq) => seq >= 7,
+    svg:"<svg viewBox='0 0 24 24'><path fill='#FF6A2B' d='M12.5 2c.6 3.4 4.8 5.4 4.8 10.6A5.6 5.6 0 0 1 12 21a5.8 5.8 0 0 1-6-5.9c0-3 1.7-4.6 2.9-6.2.3 1.6 1 2.8 2.2 3.3C10.7 8.6 11.2 5 12.5 2z'/><path fill='#FFC24B' d='M12 21a3 3 0 0 1-3-3c0-1.9 1.6-2.9 2.4-4.4.6 1.6 3.6 2.4 3.6 4.6a3 3 0 0 1-3 2.8z'/></svg>" },
+  { nome:"30 dias de meta", dica:"Bata a meta em 30 dias (não precisa ser seguido).", ok:(m) => [...m.values()].filter(v => v >= meta).length >= 30,
+    svg:"<svg viewBox='0 0 24 24'><path fill='#E9A800' d='m3 7.5 4.5 3.5L12 4.5l4.5 6.5L21 7.5l-1.8 11H4.8z'/><path fill='#C98F00' d='M4.8 18.5h14.4v2H4.8z'/><circle cx='12' cy='13.5' r='1.6' fill='#fff' opacity='.7'/></svg>" }
+];
+function pintarDesafios() {
+  const m = porDia(), sem = diasMetaSemana(m), seq = maiorSequencia(m);
+  $("#des-txt").textContent = "Beba " + litros(meta) + " em 5 dias desta semana!";
+  $("#des-n").textContent = Math.min(sem, 5) + " / 5";
+  $("#des-barra").style.width = Math.min(100, sem * 20) + "%";
+  const caixa = $("#conquistas"); caixa.innerHTML = ""; let n = 0;
+  CONQUISTAS.forEach(c => {
+    const ok = c.ok(m, seq); if (ok) n++;
+    const b = document.createElement("button");
+    b.className = "conquista" + (ok ? "" : " bloq");
+    b.innerHTML = "<span class='med'>" + c.svg + "</span><span>" + c.nome + "</span>";
+    b.setAttribute("aria-label", c.nome + (ok ? ": conquistada" : ": ainda não. " + c.dica));
+    b.onclick = () => { $("#conq-dica").textContent = (ok ? "Conquistada! " : "") + c.dica; };
+    caixa.append(b);
+  });
+  $("#conq-n").textContent = n + " de " + CONQUISTAS.length;
+}
+
+/* ═══════════════ mais / perfil / aparência ═══════════════ */
+function pintarMais() {
+  const nome = (perfil.nome || "").trim();
+  $("#avatar").textContent = nome ? nome[0].toUpperCase() : "B";
+  $("#p-nome").textContent = nome || "Seu perfil";
+  $("#m-meta").textContent = litros(meta) + " por dia";
+}
+function pintarPerfil() {
+  $("#f-nome").value = perfil.nome || "";
+  $("#f-peso").value = perfil.peso || "";
+  $("#f-altura").value = perfil.altura || "";
+  $$("#seg-ativ button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p === perfil.atividade)));
+}
+function aplicarAparencia() {
+  const r = document.documentElement;
+  if (ajustes.tema === "auto") r.removeAttribute("data-theme"); else r.setAttribute("data-theme", ajustes.tema);
+  r.classList.toggle("grande", !!ajustes.grande);
+  $$("#seg-tema button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p === ajustes.tema)));
+  $("#f-grande").checked = !!ajustes.grande;
+  const escuro = ajustes.tema === "dark" || (ajustes.tema === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  $("meta[name=theme-color]").setAttribute("content", escuro ? "#0A1120" : "#EAF3FD");
+}
+
+/* ═══════════════ navegação ═══════════════ */
+const ABA_DE = { inicio:"inicio", estatisticas:"estatisticas", historico:"estatisticas", desafios:"desafios",
+  minha:"minha", carinha:"minha", animacoes:"minha", mais:"mais", perfil:"mais", conexao:"mais", aparencia:"mais", sobre:"mais", metas:"inicio" };
+let navegouNoApp = false, telaAtual = "inicio";
+function rota() {
+  let id = location.hash.slice(1) || "inicio";
+  if (!ABA_DE[id]) id = "inicio";
+  telaAtual = id;
+  $$(".tela").forEach(s => s.classList.toggle("ativa", s.id === "t-" + id));
+  $$(".abas a").forEach(a => a.toggleAttribute("aria-current", false));
+  const aba = $(".abas a[data-aba='" + ABA_DE[id] + "']"); if (aba) aba.setAttribute("aria-current", "page");
+  if (id === "metas") metaRascunho = meta;
+  if (id === "perfil") pintarPerfil();
+  pintarTudo();
+  scrollTo(0, 0);
+}
+function pintarTudo() {
+  pintarInicio(); pintarMais();
+  if (telaAtual === "estatisticas") pintarEstatisticas();
+  if (telaAtual === "historico") pintarHistorico();
+  if (telaAtual === "desafios") pintarDesafios();
+  if (telaAtual === "metas") pintarMetas();
+  if (telaAtual === "minha") pintarMinha();
+}
+addEventListener("hashchange", () => { navegouNoApp = true; rota(); });
+$$(".voltar").forEach(b => b.onclick = () => {
+  const pai = b.closest(".tela").dataset.pai || "inicio";
+  if (navegouNoApp && history.length > 1) history.back(); else location.hash = pai;
+});
+
+/* ═══════════════ laço de desenho ═══════════════ */
+function laco(ts) {
+  if (document.visibilityState === "visible") {
+    if (telaAtual === "inicio") desenharGota(ts);
+    if (telaAtual === "minha") desenharDisco(ts);
+  }
+  requestAnimationFrame(laco);
+}
+
+/* ═══════════════ ligações ═══════════════ */
+COPOS.forEach(c => {
+  const b = document.createElement("button");
+  b.className = "copo"; b.dataset.ml = c.ml;
+  b.innerHTML = "<svg><use href='#" + c.ic + "'/></svg><b class='num'>" + c.ml + "</b><span>" + c.rot + "</span>";
+  b.onclick = () => { mlEscolhido = c.ml; pintarFolha(); };
+  $("#copos").append(b);
+});
+$("#ml-menos").onclick = () => { mlEscolhido = Math.max(50, mlEscolhido - 50); pintarFolha(); };
+$("#ml-mais").onclick  = () => { mlEscolhido = Math.min(2000, mlEscolhido + 50); pintarFolha(); };
+$("#b-registrar").onclick = abrirFolha;
+$("#veu").onclick = fecharFolha;
+$("#b-confirmar").onclick = confirmarRegistro;
+addEventListener("keydown", e => { if (e.key === "Escape" && !$("#folha").hidden) fecharFolha(); });
+
+$("#anel").onclick = () => { location.hash = "metas"; };
+$("#chip-bt").onclick = () => { if (conectado) location.hash = "conexao"; else conectar(); };
+$("#c-clima").onclick = () => buscarClima(true);
+$("#b-clima-meta").onclick = () => buscarClima(true);
+
+$$("#seg-est button").forEach(b => b.onclick = () => { periodoEst = b.dataset.p; $$("#seg-est button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); pintarEstatisticas(); });
+$$("#seg-hist button").forEach(b => b.onclick = () => { periodoHist = b.dataset.p; $$("#seg-hist button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); pintarHistorico(); });
+
+$("#meta-menos").onclick = () => { metaRascunho = Math.max(500, metaRascunho - 100); pintarMetas(); };
+$("#meta-mais").onclick  = () => { metaRascunho = Math.min(6000, metaRascunho + 100); pintarMetas(); };
+$("#b-usar-sug").onclick = () => { const s = metaSugerida(); if (s) { metaRascunho = s.total; pintarMetas(); } };
+$("#b-salvar-meta").onclick = () => { meta = metaRascunho; guardado.gravar("meta", meta); recado("Meta salva: " + litros(meta) + " por dia."); location.hash = "inicio"; };
+
+$$("#seg-ativ button").forEach(b => b.onclick = () => $$("#seg-ativ button").forEach(x => x.setAttribute("aria-pressed", String(x === b))));
+$("#b-salvar-perfil").onclick = () => {
+  const peso = parseFloat(String($("#f-peso").value).replace(",", "."));
+  const altura = parseInt($("#f-altura").value, 10);
+  if ($("#f-peso").value && (isNaN(peso) || peso < 25 || peso > 250)) { recado("Confira o peso: entre 25 e 250 kg.", false); return; }
+  if ($("#f-altura").value && (isNaN(altura) || altura < 100 || altura > 230)) { recado("Confira a altura: em centímetros, entre 100 e 230.", false); return; }
+  const ativ = ($("#seg-ativ button[aria-pressed='true']") || {}).dataset;
+  perfil = { nome:$("#f-nome").value.trim(), peso:isNaN(peso) ? null : peso, altura:isNaN(altura) ? null : altura, atividade:ativ ? ativ.p : "moderada" };
+  guardado.gravar("perfil", perfil);
+  const s = metaSugerida();
+  recado(s ? "Perfil salvo. Meta sugerida: " + litros(s.total) + "." : "Perfil salvo.", true, s && s.total !== meta ? { rotulo:"Ver", fazer:() => { location.hash = "metas"; } } : null);
+  pintarTudo();
+};
+
+$$("#seg-tema button").forEach(b => b.onclick = () => { ajustes.tema = b.dataset.p; guardado.gravar("ajustes", ajustes); aplicarAparencia(); });
+$("#f-grande").onchange = e => { ajustes.grande = e.target.checked; guardado.gravar("ajustes", ajustes); aplicarAparencia(); };
+
+$("#b-convidar").onclick = async () => {
+  const dados = { title:"BLU", text:"Topa o desafio? Beber " + litros(meta) + " de água em 5 dias desta semana.", url:location.origin + location.pathname };
+  try {
+    if (navigator.share) await navigator.share(dados);
+    else { await navigator.clipboard.writeText(dados.text + " " + dados.url); recado("Convite copiado. Cole onde quiser."); }
+  } catch (e) { /* cancelou */ }
+};
+
+$("#b-exportar").onclick = () => {
+  const txt = JSON.stringify({ app:"BLU", versao:2, exportado:new Date().toISOString(), perfil, meta, registros }, null, 1);
+  const url = URL.createObjectURL(new Blob([txt], { type:"application/json" }));
+  const a = document.createElement("a"); a.href = url; a.download = "blu-registros-" + chaveDia(new Date()) + ".json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  recado("Cópia salva nos downloads (" + registros.length + " registros).");
+};
+$("#b-importar").onclick = () => $("#f-importar").click();
+$("#f-importar").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (j.app !== "BLU" || !Array.isArray(j.registros)) throw new Error("não é uma cópia da BLU");
+    const validos = j.registros.filter(r => r && Number.isFinite(r.t) && Number.isFinite(r.ml) && r.ml > 0 && r.ml <= 5000);
+    const vistos = new Set(registros.map(r => r.t + ":" + r.ml));
+    let novos = 0; for (const r of validos) if (!vistos.has(r.t + ":" + r.ml)) { registros.push({ t:r.t, ml:r.ml }); novos++; }
+    registros.sort((a, b) => a.t - b.t); salvarRegistros();
+    if (j.perfil && !perfil.peso) { perfil = Object.assign(perfil, j.perfil); guardado.gravar("perfil", perfil); }
+    if (Number.isFinite(j.meta)) { meta = j.meta; guardado.gravar("meta", meta); }
+    recado(novos + " registros restaurados."); pintarTudo();
+  } catch (err) { recado("Não consegui ler esse arquivo: " + err.message, false); }
+  e.target.value = "";
+};
+$("#b-limpar").onclick = () => {
+  if (!confirm("Apagar todos os " + registros.length + " registros de água deste celular? Não dá pra desfazer — guarde uma cópia antes se quiser.")) return;
+  registros = []; salvarRegistros(); pintarTudo(); recado("Registros apagados.");
+};
+
+// garrafa
 ROTULO.forEach((nome, i) => {
   const b = document.createElement("button");
   b.textContent = nome; b.disabled = true; b.setAttribute("aria-pressed", "false");
-  b.onclick = async () => {
-    try { await car.rosto.writeValueWithResponse(new Uint8Array([i])); anotar("Pedi o rosto " + nome + "."); }
-    catch (e) { recado("Não consegui: " + e.message); }
-  };
+  b.onclick = () => mandarHumor(i);
   $("#humores").append(b);
 });
-
 for (let s = 0; s < SLOTS; s++) {
   const b = document.createElement("button");
-  b.textContent = "·"; b.setAttribute("aria-pressed", String(s === 0));
-  b.onclick = () => {
-    slotEscolhido = s;
-    document.querySelectorAll("#slots button").forEach((x, i) => x.setAttribute("aria-pressed", String(i === s)));
-    atualizarBotoesSlot();
-  };
+  b.textContent = "·"; b.setAttribute("aria-pressed", String(s === 0)); b.setAttribute("aria-label", "Posição " + s);
+  b.onclick = () => { slotEscolhido = s; $$("#slots button").forEach((x, i) => x.setAttribute("aria-pressed", String(i === s))); atualizarBotoesSlot(); };
   $("#slots").append(b);
 }
-
-document.querySelectorAll("nav button").forEach(b => {
-  b.onclick = () => {
-    document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
-    document.querySelectorAll("section.aba").forEach(s => { s.hidden = s.id !== "aba-" + b.dataset.aba; });
-  };
-});
-
 $("#b-conectar").onclick = conectar;
 $("#b-desconectar").onclick = () => { if (gatt) gatt.disconnect(); };
 $("#b-escolher").onclick = () => $("#arquivo").click();
@@ -857,58 +1874,45 @@ $("#arquivo").onchange = e => { if (e.target.files[0]) carregarImagem(e.target.f
 $("#b-enviar").onclick = enviarQuadro;
 $("#b-ver").onclick = () => ctrl([0x0B, 100 + slotEscolhido]);
 $("#b-apagar").onclick = () => ctrl([0x04, slotEscolhido]);
-$("#b-zerar").onclick = () => { if (confirm("Apagar todas as suas carinhas e voltar as animações de fábrica?")) ctrl([0x04, 255]); };
+$("#b-zerar").onclick = () => { if (confirm("Apagar todas as suas carinhas da garrafa e voltar as animações de fábrica?")) ctrl([0x04, 255]); };
 $("#b-formatar").onclick = async () => {
-  if (!confirm("Formatar a memória de carinhas da garrafa?\n\nLeva uns 10 segundos, apaga as carinhas que você gravou (as 14 de fábrica continuam) e a garrafa reinicia no fim.")) return;
-  recado("Formatando… não desligue a garrafa. Isso leva uns 10 segundos.");
+  if (!confirm("Formatar a memória de carinhas da garrafa?\n\nLeva uns 10 segundos e a garrafa reinicia no fim. Se o erro de gravação está aparecendo, não há nada gravado para perder.")) return;
+  recado("Formatando… não desligue a garrafa. Leva uns 10 segundos.");
   try { await ctrl([0x0C]); } catch (e) { /* a garrafa pode cair o BLE durante o format */ }
-  setTimeout(() => recado("Formatou. Se ela tiver desconectado, conecte de novo e mande a carinha."), 12000);
 };
 $("#b-fabrica").onclick = () => ctrl([0x06]);
-$("#b-vazia").onclick = () => ctrl([0x07]);
-$("#b-cheia").onclick = () => ctrl([0x08]);
-$("#marg").addEventListener("input", e => {
-  const v = +e.target.value;
-  $("#marg-n").textContent = v ? v : "automática";
-});
-$("#b-marg").onclick = () => {
-  const v = +$("#marg").value;
-  ctrl([0x0D, v & 255, (v >> 8) & 255]);
-  recado(v ? ("Sensibilidade " + v + " salva na garrafa.") : "Sensibilidade volta pra automática.", true);
-};
-$("#b-recal").onclick = () => {
-  ctrl([0x0E]);
-  recado("Referência recalibrada. Não encoste na garrafa agora.", true);
-};
+$("#marg").addEventListener("input", e => { const v = +e.target.value; $("#marg-n").textContent = v ? v : "automática"; });
+$("#b-marg").onclick = () => { const v = +$("#marg").value; ctrl([0x0D, v & 255, (v >> 8) & 255]); recado(v ? "Sensibilidade " + v + " salva na garrafa." : "Sensibilidade volta pra automática."); };
+$("#b-recal").onclick = () => { ctrl([0x0E]); recado("Referência recalibrada. Não encoste na garrafa agora."); };
 $("#b-thr").onclick = () => {
   const v = parseInt($("#thr").value, 10);
-  if (isNaN(v) || v < 20) { recado("Escolha um valor a partir de 20 ms."); return; }
-  ctrl([0x09, v & 255, (v >> 8) & 255]);
+  if (isNaN(v) || v < 20) { recado("Escolha um valor a partir de 20 ms.", false); return; }
+  ctrl([0x09, v & 255, (v >> 8) & 255]); recado("Tempo mínimo salvo: " + v + " ms.");
 };
 $("#b-h").onclick = () => {
   if (!pixelsAtual) return;
-  const txt = gerarH(pixelsAtual);
-  const url = URL.createObjectURL(new Blob([txt], { type:"text/plain" }));
-  const a = document.createElement("a");
-  a.href = url; a.download = "ImagemBLU.h"; a.click();
+  const txt = gerarH(pixelsAtual), url = URL.createObjectURL(new Blob([txt], { type:"text/plain" }));
+  const a = document.createElement("a"); a.href = url; a.download = "ImagemBLU.h"; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
-  recado("Baixado ImagemBLU.h (" + Math.round(txt.length/1024) + " KB). Ponha ao lado do .ino e inclua no sketch.", true);
+  recado("Baixado ImagemBLU.h (" + Math.round(txt.length / 1024) + " KB).");
 };
 
 if (!navigator.bluetooth) {
-  const el = $("#sem-bt");
-  el.innerHTML = "<b>Este navegador não libera Bluetooth para esta página.</b><br>" +
-    "Web Bluetooth precisa de Chrome (ou Edge) no Android, e a página precisa estar num endereço https. " +
-    "O resto do app funciona: dá pra converter imagem e copiar o .h.";
-  el.hidden = false;
-  $("#b-conectar").disabled = true;
+  $("#sem-bt").innerHTML = "<b>Este navegador não libera Bluetooth para páginas.</b><br>Use o Chrome no Android. O resto do app (água, metas, estatísticas) funciona normalmente.";
+  $("#sem-bt").hidden = false;
 }
 
+/* ═══════════════ partida ═══════════════ */
+aplicarAparencia();
+montarExpressoes();
 montarEditores();
 pintarConexao();
-pintarNivel();
+rota();
+// clima: so busca sozinho se a pessoa ja autorizou antes (temos coordenadas) e o dado tem mais de 1 h
+if (clima && clima.lat != null && (!clima.em || Date.now() - clima.em > 36e5)) buscarClima(false);
+// vira o dia / avanca o "seu dia" sem precisar recarregar
+setInterval(() => { if (document.visibilityState === "visible") pintarTudo(); }, 60000);
 requestAnimationFrame(laco);
 </script>
-
 </body>
 </html>
