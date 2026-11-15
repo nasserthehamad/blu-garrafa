@@ -100,7 +100,6 @@
   .anel-txt b small { font-size:2rem; font-weight:800; }
   .anel-txt span { font-size:1.0625rem; font-weight:500; color:var(--tinta); margin-top:6px; }
   .anel-txt span + span { margin-top:2px; }
-  #gota { position:absolute; right:-2px; top:-6px; width:92px; height:108px; pointer-events:none; }
 
   /* ── cartões ── */
   .cartao { display:block; width:100%; background:var(--cartao); border:1px solid var(--borda-cartao); border-radius:var(--raio);
@@ -444,7 +443,6 @@
           <span class="num" id="anel-l">0,0 L de 2,0 L</span>
         </div>
       </button>
-      <canvas id="gota" width="240" height="280" aria-hidden="true"></canvas>
     </div>
 
     <a class="cartao linha-cartao faixa-azul" href="#historico" style="text-decoration:none">
@@ -1301,26 +1299,6 @@ function desenharFace(g, nomeQuadro, escala) {
   for (const [c, d] of CARINHAS.quadros[nomeQuadro]) { g.fillStyle = COR[c]; g.fill(new Path2D(d)); }
   g.restore();
 }
-function desenharGota(agora) {
-  const cv = $("#gota"), g = cv.getContext("2d");
-  g.clearRect(0, 0, cv.width, cv.height);
-  const bal = MOVIMENTO ? Math.sin(agora / 900) * 3 : 0;
-  g.save(); g.translate(0, bal);
-  g.beginPath();
-  g.moveTo(120, 8);
-  g.bezierCurveTo(146, 52, 212, 112, 212, 184);
-  g.arc(120, 184, 92, 0, Math.PI, false);
-  g.bezierCurveTo(28, 112, 94, 52, 120, 8);
-  const gr = g.createLinearGradient(0, 0, 0, 280);
-  gr.addColorStop(0, "#6CBBFF"); gr.addColorStop(1, "#1E6FE0");
-  g.fillStyle = gr; g.fill();
-  g.fillStyle = "rgba(255,255,255,.28)";
-  g.beginPath(); g.ellipse(78, 130, 12, 26, -0.45, 0, 7); g.fill();
-  const s = 1.0;
-  g.translate(120 - 75 * s, 196 - 82 * s);
-  desenharFace(g, quadroDoHumor(humorDoApp(), agora), s);
-  g.restore();
-}
 let previaHumor = 0;
 function desenharDisco(agora) {
   const cv = $("#disco"), g = cv.getContext("2d"), L = cv.width;
@@ -1766,7 +1744,6 @@ $$(".voltar").forEach(b => b.onclick = () => {
 /* ═══════════════ laço de desenho ═══════════════ */
 function laco(ts) {
   if (document.visibilityState === "visible") {
-    if (telaAtual === "inicio") desenharGota(ts);
     if (telaAtual === "minha") desenharDisco(ts);
   }
   requestAnimationFrame(laco);
